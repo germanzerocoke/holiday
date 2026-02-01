@@ -35,7 +35,7 @@ export default function SMSScreen() {
     const sessionId = await getSecureStore("sessionId");
     console.log("execute post sms otp mutate");
     verifySMSOTPMutation.mutate(
-      { otp, verificationId, sessionId },
+      { otp, verificationId, sessionId: sessionId ?? undefined },
       {
         onSuccess: () => router.replace("/home"),
       },

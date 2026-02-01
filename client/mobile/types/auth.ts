@@ -3,33 +3,33 @@ export interface Token {
   refreshToken: string;
 }
 
-export interface emailSignReq {
+export interface EmailSignRequest {
   email: string;
   password: string;
 }
 
-export interface verifyEmailOTPReq {
+export interface VerifyEmailOTPRequest {
   otp: string;
   verificationId: string;
 }
 
-export interface verifyEmailOTPResp {
+export interface VerifyEmailOTPResponse {
   emailVerified: boolean;
   sessionId?: string;
 }
 
-export interface verifySMSOTPReq {
+export interface VerifySMSOTPRequest {
   otp: string;
   verificationId: string;
   sessionId?: string;
 }
 
-export interface verifySMSOTPResp {
+export interface VerifySMSOTPResponse {
   phoneNumberVerified: boolean;
   accessToken?: string;
 }
 
-export interface EmailLoginResp {
+export interface EmailLoginResponse {
   emailVerified: boolean;
   phoneNumberVerified: boolean;
   id: string;
@@ -37,13 +37,14 @@ export interface EmailLoginResp {
   accessToken?: string;
 }
 
-export interface signInWithAppleReq {
-  identityToken: string | null;
+export interface SignInWithAppleRequest {
   user: string;
   email: string | null;
+  identityToken: string | null;
+  nonce: string,
 }
 
-export interface signInWithAppleResp {
+export interface SignInWithAppleResponse {
   phoneNumberVerified: boolean;
   sessionId?: string;
   accessToken?: string;

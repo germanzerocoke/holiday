@@ -7,9 +7,24 @@ import {
   signInAsync,
 } from "expo-apple-authentication";
 import { useAuth } from "@/hooks/useAuth";
+import { randomUUID } from "expo-crypto";
 
 export default function AppleSignInButton() {
   const { signInWithAppleMutation } = useAuth();
+
+  const onSignIn = async () => {
+    const rawNonce = randomUUID();
+    const credential = await signInAsync({
+      requestedScopes: [AppleAuthenticationScope.EMAIL],
+      nonce: rawNonce,
+    });
+    signInWithAppleMutation.mutate({
+      user: credential.user,
+      email: credential.email,
+      identityToken: credential.identityToken,
+      nonce: rawNonce,
+    });
+  };
 
   return (
     <View>
@@ -18,18 +33,7 @@ export default function AppleSignInButton() {
         buttonStyle={AppleAuthenticationButtonStyle.BLACK}
         cornerRadius={5}
         style={styles.appleButton}
-        onPress={async () => {
-          const credential = await signInAsync({
-            requestedScopes: [AppleAuthenticationScope.EMAIL],
-          });
-          if (credential.email) {
-            signInWithAppleMutation.mutate({
-              user: credential.user,
-              identityToken: credential.identityToken,
-              email: credential.email
-            });
-          }
-        }}
+        onPress={onSignIn}
       />
     </View>
   );

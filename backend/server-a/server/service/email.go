@@ -6,10 +6,12 @@ import (
 	"log"
 	"log/slog"
 	"math/rand"
+	"net/http"
 	"net/smtp"
 	"os"
 	"server-a/server/dto"
 	"strconv"
+	"time"
 
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
 	_ "github.com/joho/godotenv/autoload"
@@ -179,13 +181,23 @@ func (s *Service) VerifyEmailOTP(otp, verificationId string) (*dto.EmailOTPVerif
 }
 
 func (s *Service) SignInWithApple(
-	user string,
-	email,
-	identityToken *string,
-	nonce string,
+	ctx context.Context,
+	user, nonce string,
+	email, identityToken *string,
 ) (*dto.SignInWithAppleResponse, error) {
 	if identityToken == nil {
 		return nil, errors.New("no identityToken")
 	}
-	//TODO: fetch jwk from apple and verify it, see key func go jwt
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		"https://appleid.apple.com/auth/keys",
+		nil,
+	)
+	if err != nil {
+		slog.Error("fail to get")
+		return nil, err
+	}
+
+	c := &http.Client{Timeout: 10 * time.Second}
 }
