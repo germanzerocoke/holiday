@@ -9,8 +9,9 @@ import (
 
 type Config struct {
 	Info struct {
-		Port   string
-		Issuer string
+		Port     string
+		Issuer   string
+		Audience string
 	} `toml:"info"`
 
 	Cassandra struct {

@@ -14,7 +14,12 @@ import (
 )
 
 func (s *Service) GenerateAccessToken(refreshToken string) (*dto.TokenRefreshResponse, error) {
-	rt, err := jwt.Parse(refreshToken, s.keyFunc)
+	rt, err := jwt.Parse(refreshToken, func(token *jwt.Token) (any, error) {
+		if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			return nil, fmt.Errorf("unexpected signing method: %s", token.Method.Alg())
+		}
+		return s.secretKeyRT, nil
+	})
 	if err != nil {
 		log.Printf("fail to parse token: %v", err)
 		return nil, err
@@ -58,14 +63,7 @@ func (s *Service) GenerateAccessToken(refreshToken string) (*dto.TokenRefreshRes
 	return &resp, nil
 }
 
-func (s *Service) keyFunc(token *jwt.Token) (any, error) {
-	if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
-		return nil, fmt.Errorf("unexpected signing method: %s", token.Method.Alg())
-	}
-	return s.secretKeyRT, nil
-}
-
-func (s *Service) createLoginTokens(id string, role string) (accessToken, refreshToken string, err error) {
+func (s *Service) createLoginTokens(id, role string) (accessToken, refreshToken string, err error) {
 	at, err := createToken(id, role, s.secretKeyAT, constant.AccessTokenTTL)
 	if err != nil {
 		slog.Error("fail to create access token",

@@ -14,6 +14,7 @@ type Service struct {
 	secretKeyAT  []byte
 	secretKeyRT  []byte
 	issuer       string
+	audience     string
 	twilioClient *twilio.RestClient
 }
 
@@ -33,6 +34,7 @@ func NewService(cfg *config.Config, r *repository.Repository) *Service {
 		secretKeyAT:  []byte(os.Getenv("SECRET_KEY_AT")),
 		secretKeyRT:  []byte(os.Getenv("SECRET_KEY_RT")),
 		issuer:       cfg.Info.Issuer,
+		audience:     cfg.Info.Audience,
 		twilioClient: client,
 	}
 }

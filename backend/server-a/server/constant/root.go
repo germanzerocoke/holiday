@@ -8,3 +8,8 @@ const (
 	AccessTokenTTL  = 600
 	RefreshTokenTTL = 15552000
 )
+
+const (
+	AppleKeyUrl    = "https://appleid.apple.com/auth/keys"
+	AppleIssuerUrl = "https://appleid.apple.com"
+)

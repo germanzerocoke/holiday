@@ -1,6 +1,7 @@
 [info]
 port = ":8080"
 issuer = "Holiday"
+audience = "com.xcecv.mobile"
 
 [kafka]
 producerClientId = "go-client-65fad313-91b8-4017-99e7-41d177654321"
