@@ -40,7 +40,7 @@ export interface EmailLoginResponse {
 export interface SignInWithAppleRequest {
   user: string;
   email: string | null;
-  identityToken: string | null;
+  identityToken: string;
   nonce: string,
 }
 

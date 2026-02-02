@@ -18,10 +18,14 @@ export default function AppleSignInButton() {
       requestedScopes: [AppleAuthenticationScope.EMAIL],
       nonce: rawNonce,
     });
+    const idt = credential.identityToken ?? ""
+    if(!idt) {
+      return
+    }
     signInWithAppleMutation.mutate({
       user: credential.user,
       email: credential.email,
-      identityToken: credential.identityToken,
+      identityToken: idt,
       nonce: rawNonce,
     });
   };

@@ -191,11 +191,9 @@ func (s *Service) SignInWithApple(
 	user,
 	rawNonce string,
 	email,
-	identityToken *string,
+	identityToken string,
 ) (*dto.SignInWithAppleResponse, error) {
-	if identityToken == nil {
-		return nil, errors.New("no identityToken")
-	}
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
@@ -215,7 +213,6 @@ func (s *Service) SignInWithApple(
 		return nil, err
 	}
 	defer resp.Body.Close()
-
 	var jwks map[string]any
 	err = json.NewDecoder(resp.Body).Decode(&jwks)
 	if err != nil {
@@ -226,7 +223,7 @@ func (s *Service) SignInWithApple(
 		return nil, err
 	}
 
-	idt, err := jwt.Parse(*identityToken, func(token *jwt.Token) (any, error) {
+	idt, err := jwt.Parse(identityToken, func(token *jwt.Token) (any, error) {
 		if token.Method.Alg() != jwt.SigningMethodES256.Alg() {
 			slog.Info("unexpected signing method")
 			return nil, errors.New(message.AppleSignInFailed)
