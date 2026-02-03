@@ -2,24 +2,16 @@ package service
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"log"
 	"log/slog"
 	"math/rand"
-	"net/http"
 	"net/smtp"
 	"os"
-	"server-a/server/constant"
-	"server-a/server/constant/message"
 	"server-a/server/dto"
 	"strconv"
-	"time"
 
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
-	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/joho/godotenv/autoload"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -37,11 +29,11 @@ func (s *Service) IsEmailUsable(ctx context.Context, email string) (bool, error)
 }
 
 func (s *Service) CreateMemberByEmail(ctx context.Context, email, password string) (map[string]string, error) {
-	i, err := s.repository.EmailExists(ctx, email)
+	exist, err := s.repository.EmailExists(ctx, email)
 	if err != nil {
 		return nil, err
 	}
-	if i {
+	if exist {
 		log.Printf("this email already exist")
 		return nil, errors.New("this email already exist")
 	}
@@ -184,100 +176,4 @@ func (s *Service) VerifyEmailOTP(otp, verificationId string) (*dto.EmailOTPVerif
 		SessionId:     sid.String(),
 	}
 	return &resp, nil
-}
-
-func (s *Service) SignInWithApple(
-	ctx context.Context,
-	user,
-	rawNonce string,
-	email,
-	identityToken string,
-) (*dto.SignInWithAppleResponse, error) {
-
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodGet,
-		constant.AppleKeyUrl,
-		nil,
-	)
-	if err != nil {
-		slog.Error("fail to make http request",
-			"err", err,
-		)
-		return nil, err
-	}
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		slog.Error("fail to do request", "err", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-	var jwks map[string]any
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
-	if err != nil {
-		slog.Error("fail to decode jwks in time",
-			"err", err,
-			"resp", resp,
-		)
-		return nil, err
-	}
-
-	idt, err := jwt.Parse(identityToken, func(token *jwt.Token) (any, error) {
-		if token.Method.Alg() != jwt.SigningMethodES256.Alg() {
-			slog.Info("unexpected signing method")
-			return nil, errors.New(message.AppleSignInFailed)
-		}
-		return jwks, nil
-	})
-	issFromClaims, err := idt.Claims.GetIssuer()
-	if err != nil {
-		slog.Info("fail to get issuer",
-			"err", err,
-			"claims", idt.Claims,
-		)
-		return nil, err
-	}
-	if issFromClaims != constant.AppleIssuerUrl {
-		slog.Info("not expected apple issuer",
-			"iss", issFromClaims,
-		)
-		return nil, errors.New(message.AppleSignInFailed)
-	}
-
-	audsFromClaims, err := idt.Claims.GetAudience()
-	if err != nil {
-		slog.Info("fail to get audience",
-			"err", err,
-			"claims", idt.Claims,
-		)
-		return nil, errors.New(message.AppleSignInFailed)
-	}
-	if len(audsFromClaims) != 0 || audsFromClaims[0] != s.audience {
-		slog.Info("no audience or not expected audience")
-		return nil, errors.New(message.AppleSignInFailed)
-	}
-
-	exp, err := idt.Claims.GetExpirationTime()
-	if err != nil {
-		slog.Info("fail to get expiration time")
-		return nil, errors.New(message.AppleSignInFailed)
-	}
-	if exp.Unix() < time.Now().Unix() {
-		slog.Info("stale token")
-		return nil, errors.New(message.AppleSignInFailed)
-	}
-
-	nonceFromClaims, ok := idt.Claims.(jwt.MapClaims)["nonce"].(string)
-	if !ok {
-		slog.Info("no nonce in claims")
-		return nil, errors.New(message.AppleSignInFailed)
-	}
-	sum := sha256.Sum256([]byte(rawNonce))
-	hashedNonce := base64.RawURLEncoding.EncodeToString(sum[:])
-	if nonceFromClaims != hashedNonce {
-		slog.Info("not expected identityToken's nonce")
-		return nil, errors.New(message.AppleSignInFailed)
-	}
-
 }

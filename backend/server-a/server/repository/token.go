@@ -21,6 +21,7 @@ func (r *Repository) FindRefreshTokenById(id gocql.UUID) (refreshToken string, e
 	return refreshToken, nil
 }
 
+// TODO: save jti instead of whole refresh token
 func (r *Repository) SaveRefreshTokenById(id gocql.UUID, rt string) error {
 	err := r.session.Query(
 		"UPDATE member_by_id USING TTL ? SET refresh_token = ? WHERE id = ?",

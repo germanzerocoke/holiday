@@ -37,6 +37,7 @@ func (s *Service) GenerateAccessToken(refreshToken string) (*dto.TokenRefreshRes
 	if err != nil {
 		log.Printf("fail to parse gocql uuid from id: %v", err)
 	}
+	//TODO: check jti instead of whole token and add validations for other claims
 	rtInDB, err := s.repository.FindRefreshTokenById(uuid)
 	if err != nil {
 		log.Printf("fail to find token: %v", err)
