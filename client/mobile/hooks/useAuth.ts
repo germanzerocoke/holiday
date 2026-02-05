@@ -125,6 +125,12 @@ function useSignInWithApple() {
       }
       saveSecureStore("accessToken", data?.accessToken ?? "");
     },
+    onError: (error) => {
+      Toast.show({
+        type: "error",
+        text1: error.message,
+      });
+    }
   });
 }
 

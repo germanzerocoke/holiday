@@ -8,6 +8,7 @@ import {
 } from "expo-apple-authentication";
 import { useAuth } from "@/hooks/useAuth";
 import { randomUUID } from "expo-crypto";
+import { router } from "expo-router";
 
 export default function AppleSignInButton() {
   const { signInWithAppleMutation } = useAuth();
@@ -18,16 +19,27 @@ export default function AppleSignInButton() {
       requestedScopes: [AppleAuthenticationScope.EMAIL],
       nonce: rawNonce,
     });
-    const idt = credential.identityToken ?? ""
-    if(!idt) {
-      return
+    const idt = credential.identityToken ?? "";
+    if (!idt) {
+      return;
     }
-    signInWithAppleMutation.mutate({
-      user: credential.user,
-      email: credential.email,
-      identityToken: idt,
-      nonce: rawNonce,
-    });
+    signInWithAppleMutation.mutate(
+      {
+        user: credential.user,
+        email: credential.email,
+        identityToken: idt,
+        nonce: rawNonce,
+      },
+      {
+        onSuccess: async (data) => {
+          if(!data.phoneNumberVerified){
+            router.push("/auth/phonenumber")
+            return
+          }
+          router.push("/home")
+        },
+      }
+    );
   };
 
   return (
