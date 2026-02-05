@@ -39,7 +39,7 @@ func (r *Repository) FindPhoneNumberByVerificationId(verificationId gocql.UUID) 
 	return phoneNumber, nil
 }
 
-func (r *Repository) SavePhoneNumberMember(phoneNumber string, id gocql.UUID) error {
+func (r *Repository) SavePhoneNumberLoginInfo(phoneNumber string, id gocql.UUID) error {
 	err := r.session.Query(
 		"SELECT id FROM member_by_phone_number WHERE phone_number = ?",
 		phoneNumber,
@@ -91,4 +91,15 @@ func (r *Repository) LinkPhoneNumberToMember(id gocql.UUID, email, phoneNumber, 
 		return err
 	}
 	return nil
+}
+
+func (r *Repository) FindPhoneNumberVerifiedById(id gocql.UUID) (phoneNumberVerified bool, err error) {
+	err = r.session.Query(
+		"SELECT phone_number_verified FROM member_by_id WHERE id = ?",
+		id,
+	).Scan(&phoneNumberVerified)
+	if err != nil {
+		slog.Error("fail to find phone number verified by id")
+	}
+	return phoneNumberVerified, nil
 }

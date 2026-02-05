@@ -67,7 +67,7 @@ func (n *Network) checkEmail(c *gin.Context) {
 		return
 	}
 	ctx := c.Request.Context()
-	ok, err := n.service.IsEmailUsable(ctx, req.Email)
+	ok, err := n.service.CheckEmailUsable(ctx, req.Email)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
@@ -112,7 +112,7 @@ func (n *Network) signInWithApple(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 	}
-	responseBody, err := n.service.SignInWithApple(
+	responseBody, rt, err := n.service.SignInWithApple(
 		ctx,
 		req.User,
 		req.Nonce,
@@ -121,6 +121,16 @@ func (n *Network) signInWithApple(c *gin.Context) {
 	)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, err.Error())
+	}
+	if rt != "" {
+		c.SetCookie("refresh_token",
+			rt,
+			constant.RefreshTokenTTL,
+			"",
+			"",
+			false,
+			true,
+		)
 	}
 	c.JSON(http.StatusOK, responseBody)
 }

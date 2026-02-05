@@ -7,28 +7,27 @@ import (
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
 )
 
-func (r *Repository) FindRefreshTokenById(id gocql.UUID) (refreshToken string, err error) {
+func (r *Repository) FindRefreshTokenJTIById(id gocql.UUID) (jti gocql.UUID, err error) {
 	err = r.session.Query(
-		"SELECT refresh_token from member_by_id WHERE id = ?",
+		"SELECT refresh_token_jti from member_by_id WHERE id = ?",
 		id,
-	).Scan(&refreshToken)
+	).Scan(&jti)
 	if err != nil {
-		slog.Info("fail to get refresh token",
+		slog.Info("fail to get refresh token jti",
 			"err", err,
 		)
-		return "", err
+		return gocql.UUID{}, err
 	}
-	return refreshToken, nil
+	return jti, nil
 }
 
-// TODO: save jti instead of whole refresh token
-func (r *Repository) SaveRefreshTokenById(id gocql.UUID, rt string) error {
+func (r *Repository) SaveRefreshTokenJTIById(id, jti gocql.UUID) error {
 	err := r.session.Query(
-		"UPDATE member_by_id USING TTL ? SET refresh_token = ? WHERE id = ?",
-		constant.RefreshTokenTTL, rt, id,
+		"UPDATE member_by_id USING TTL ? SET refresh_token_jti = ? WHERE id = ?",
+		constant.RefreshTokenTTL, jti, id,
 	).Exec()
 	if err != nil {
-		slog.Error("fail to save refresh token",
+		slog.Error("fail to save refresh token jti",
 			"err", err,
 		)
 		return err

@@ -16,11 +16,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *Service) IsEmailUsable(ctx context.Context, email string) (bool, error) {
+func (s *Service) CheckEmailUsable(ctx context.Context, email string) (bool, error) {
 	i, err := s.repository.EmailExists(ctx, email)
 	if err != nil {
 		return false, err
 	}
+
 	if i {
 		log.Printf("email already exist")
 		return false, nil
@@ -33,32 +34,37 @@ func (s *Service) CreateMemberByEmail(ctx context.Context, email, password strin
 	if err != nil {
 		return nil, err
 	}
+
 	if exist {
 		log.Printf("this email already exist")
 		return nil, errors.New("this email already exist")
 	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("fail to hash password: %v", err)
 		return nil, err
 	}
+
 	password = string(hashedPassword)
 	id := gocql.TimeUUID()
-
-	err = s.repository.SaveEmailMember(id, email, password)
+	err = s.repository.SaveEmailLoginInfo(id, email, password)
 	if err != nil {
 		return nil, err
 	}
+
 	return map[string]string{"id": id.String()}, nil
 }
 
 func (s *Service) LoginWithEmail(email, password string) (*dto.EmailLoginResponse, string /*refreshToken*/, error) {
 	var resp dto.EmailLoginResponse
+
 	emailVerified, phoneNumberVerified, id, dbPassword, role, err :=
 		s.repository.FindLoginInfoByEmail(email)
 	if err != nil {
 		return nil, "", err
 	}
+
 	err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
 	if err != nil {
 		slog.Info("invalid password",
@@ -66,31 +72,44 @@ func (s *Service) LoginWithEmail(email, password string) (*dto.EmailLoginRespons
 		)
 		return nil, "", err
 	}
+
 	if !emailVerified {
-		resp.EmailVerified = emailVerified
-		resp.PhoneNumberVerified = phoneNumberVerified
+		resp.EmailVerified = false
+		resp.PhoneNumberVerified = false
 		resp.Id = id.String()
 
 		return &resp, "", nil
 	}
+
 	if !phoneNumberVerified {
-		sid := gocql.TimeUUID()
+		sid, err := gocql.RandomUUID()
+		if err != nil {
+			slog.Error("fail to make random uuid for session id")
+			return nil, "", err
+		}
+
 		err = s.repository.SaveEmailBySessionId(sid, email)
-		resp.EmailVerified = emailVerified
-		resp.PhoneNumberVerified = phoneNumberVerified
+		resp.EmailVerified = true
+		resp.PhoneNumberVerified = false
 		resp.SessionId = sid.String()
 		return &resp, "", nil
 	}
-	at, rt, err := s.createLoginTokens(id.String(), role)
+
+	jti, err := gocql.RandomUUID()
+	if err != nil {
+		slog.Error("fail to create random uuid for jti")
+		return nil, "", err
+	}
+	at, rt, err := s.createLoginTokens(id.String(), jti.String(), role)
 	if err != nil {
 		return nil, "", err
 	}
-	err = s.repository.SaveRefreshTokenById(id, rt)
+	err = s.repository.SaveRefreshTokenJTIById(id, jti)
 	if err != nil {
 		return nil, "", err
 	}
-	resp.EmailVerified = emailVerified
-	resp.PhoneNumberVerified = phoneNumberVerified
+	resp.EmailVerified = true
+	resp.PhoneNumberVerified = true
 	resp.AccessToken = at
 	return &resp, rt, nil
 }
@@ -108,7 +127,11 @@ func (s *Service) SendEmailOTP(ctx context.Context, id string) (*dto.OTPSendResp
 		return nil, err
 	}
 	otp := strconv.Itoa(rand.Intn(900000) + 100000)
-	vid := gocql.TimeUUID()
+	vid, err := gocql.RandomUUID()
+	if err != nil {
+		slog.Error("fail to make random uuid for verification id")
+		return nil, err
+	}
 	err = s.repository.SaveEmailAndOtpByVerificationId(vid, email, otp)
 	if err != nil {
 		return nil, err
@@ -165,7 +188,11 @@ func (s *Service) VerifyEmailOTP(otp, verificationId string) (*dto.EmailOTPVerif
 		return nil, err
 	}
 
-	sid := gocql.TimeUUID()
+	sid, err := gocql.RandomUUID()
+	if err != nil {
+		slog.Error("fail to make random uuid for session id")
+		return nil, err
+	}
 	err = s.repository.SaveEmailBySessionId(sid, email)
 	if err != nil {
 		return nil, err

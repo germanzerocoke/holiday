@@ -13,6 +13,7 @@ import (
 	"server-a/server/dto"
 	"time"
 
+	gocql "github.com/apache/cassandra-gocql-driver/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -22,9 +23,12 @@ func (s *Service) SignInWithApple(
 	rawNonce,
 	identityToken string,
 	email *string,
-) (*dto.SignInWithAppleResponse, error) {
-
-	req, err := http.NewRequestWithContext(
+) (
+	*dto.SignInWithAppleResponse,
+	string, /*refreshToken*/
+	error,
+) {
+	keyReq, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
 		constant.AppleKeyUrl,
@@ -34,23 +38,26 @@ func (s *Service) SignInWithApple(
 		slog.Error("fail to make http request",
 			"err", err,
 		)
-		return nil, err
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
+
 	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+	keyRes, err := client.Do(keyReq)
 	if err != nil {
 		slog.Error("fail to do request", "err", err)
-		return nil, err
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
-	defer resp.Body.Close()
+
+	defer keyRes.Body.Close()
+
 	var jwks map[string]any
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
+	err = json.NewDecoder(keyRes.Body).Decode(&jwks)
 	if err != nil {
 		slog.Error("fail to decode jwks in time",
 			"err", err,
-			"resp", resp,
+			"resp", keyRes,
 		)
-		return nil, err
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
 
 	idt, err := jwt.Parse(identityToken, func(token *jwt.Token) (any, error) {
@@ -60,9 +67,10 @@ func (s *Service) SignInWithApple(
 		}
 		return jwks, nil
 	})
+
 	if !idt.Valid {
 		slog.Info("token is not valid")
-		return nil, errors.New(message.AppleSignInFailed)
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
 
 	issFromClaims, err := idt.Claims.GetIssuer()
@@ -71,13 +79,14 @@ func (s *Service) SignInWithApple(
 			"err", err,
 			"claims", idt.Claims,
 		)
-		return nil, err
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
+
 	if issFromClaims != constant.AppleIssuerUrl {
 		slog.Info("not expected apple issuer",
 			"iss", issFromClaims,
 		)
-		return nil, errors.New(message.AppleSignInFailed)
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
 
 	audsFromClaims, err := idt.Claims.GetAudience()
@@ -86,34 +95,36 @@ func (s *Service) SignInWithApple(
 			"err", err,
 			"claims", idt.Claims,
 		)
-		return nil, errors.New(message.AppleSignInFailed)
-	}
-	if len(audsFromClaims) != 0 || audsFromClaims[0] != s.audience {
-		slog.Info("no audience or not expected audience")
-		return nil, errors.New(message.AppleSignInFailed)
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
 
-	//this check is necessary for the window for which exp does not show up at our jwt claims
+	if len(audsFromClaims) != 0 || audsFromClaims[0] != s.audience {
+		slog.Info("no audience or not expected audience")
+		return nil, "", errors.New(message.AppleSignInFailed)
+	}
+
 	exp, err := idt.Claims.GetExpirationTime()
 	if err != nil {
 		slog.Info("fail to get expiration time")
-		return nil, errors.New(message.AppleSignInFailed)
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
+
 	if exp.Unix() < time.Now().Unix() {
 		slog.Info("stale token")
-		return nil, errors.New(message.AppleSignInFailed)
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
 
 	nonceFromClaims, ok := idt.Claims.(jwt.MapClaims)["nonce"].(string)
 	if !ok {
 		slog.Info("no nonce in claims")
-		return nil, errors.New(message.AppleSignInFailed)
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
+
 	sum := sha256.Sum256([]byte(rawNonce))
 	hashedNonce := base64.RawURLEncoding.EncodeToString(sum[:])
 	if nonceFromClaims != hashedNonce {
 		slog.Info("not expected identityToken's nonce")
-		return nil, errors.New(message.AppleSignInFailed)
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
 
 	userFromClaims, err := idt.Claims.GetSubject()
@@ -122,18 +133,85 @@ func (s *Service) SignInWithApple(
 			"err", err,
 		)
 	}
+
 	if userFromClaims != user {
 		slog.Info("unexpected user")
-		return nil, errors.New(message.AppleSignInFailed)
+		return nil, "", errors.New(message.AppleSignInFailed)
 	}
-
-	//sign in success
 
 	if email != nil {
-		//first time sign up user
+		id := gocql.TimeUUID()
+		err = s.repository.SaveAppleSignInInfo(id, user, *email)
+		if err != nil {
+			return nil, "", errors.New(message.AppleSignInFailed)
+		}
+		sessionId, err := gocql.RandomUUID()
+		if err != nil {
+			slog.Error("fail to generate random uuid for session")
+			return nil, "", errors.New(message.AppleSignInFailed)
+		}
+		err = s.repository.SaveEmailBySessionId(sessionId, *email)
+		if err != nil {
+			return nil, "", errors.New(message.AppleSignInFailed)
+		}
+		resp := dto.SignInWithAppleResponse{
+			PhoneNumberVerified: false,
+			SessionId:           sessionId.String(),
+		}
+		return &resp, "", nil
 	}
 
-	//login user
-	emailVerified, phoneNumberVerified, id, role, err := s.repository.FindLoginInfoByAppleSignInUser(user)
+	id, emailFromDB, role, err := s.repository.FindAppleSignInInfoByUser(user)
+	if err != nil {
+		return nil, "", errors.New(message.AppleSignInFailed)
+	}
 
+	//this additional fetching can be removed to improve speed little bit
+	//by adding few lines, but the advantage is also small currently and
+	//make link phone number process more complicate
+	phoneNumberVerified, err := s.repository.FindPhoneNumberVerifiedById(id)
+	if err != nil {
+		return nil, "", errors.New(message.AppleSignInFailed)
+	}
+
+	if !phoneNumberVerified {
+		sessionId, err := gocql.RandomUUID()
+		if err != nil {
+			slog.Error("fail to generate random uuid for session")
+			return nil, "", errors.New(message.AppleSignInFailed)
+		}
+
+		err = s.repository.SaveEmailBySessionId(sessionId, emailFromDB)
+		if err != nil {
+			return nil, "", errors.New(message.AppleSignInFailed)
+		}
+
+		resp := dto.SignInWithAppleResponse{
+			PhoneNumberVerified: false,
+			SessionId:           sessionId.String(),
+		}
+		return &resp, "", nil
+	}
+
+	jti, err := gocql.RandomUUID()
+	if err != nil {
+		slog.Error("fail to create random uuid for jti")
+		return nil, "", errors.New(message.AppleSignInFailed)
+	}
+
+	at, rt, err := s.createLoginTokens(id.String(), jti.String(), role)
+	if err != nil {
+		return nil, "", errors.New(message.AppleSignInFailed)
+	}
+
+	err = s.repository.SaveRefreshTokenJTIById(id, jti)
+	if err != nil {
+		return nil, "", errors.New(message.AppleSignInFailed)
+	}
+
+	resp := dto.SignInWithAppleResponse{
+		PhoneNumberVerified: true,
+		AccessToken:         at,
+	}
+	return &resp, rt, nil
 }

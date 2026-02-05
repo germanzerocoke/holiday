@@ -28,7 +28,11 @@ func (s *Service) SendSMSOTP(phoneNumber string) (*dto.OTPSendResponse, error) {
 	if resp.Status != nil {
 		slog.Info("success to send sms otp code", "phoneNumber", resp.To, "status", *resp.Status)
 	}
-	vid := gocql.TimeUUID()
+	vid, err := gocql.RandomUUID()
+	if err != nil {
+		slog.Error("fail to make random uuid for verification id")
+		return nil, err
+	}
 	err = s.repository.SavePhoneNumberByVerificationId(vid, *resp.To)
 	if err != nil {
 		return nil, err
@@ -93,15 +97,20 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 
 	if sessionId == nil {
 		id := gocql.TimeUUID()
-		err = s.repository.SavePhoneNumberMember(phoneNumber, id)
+		err = s.repository.SavePhoneNumberLoginInfo(phoneNumber, id)
 		if err != nil {
 			return nil, "", err
 		}
-		at, rt, err := s.createLoginTokens(id.String(), constant.RoleUser)
+		jti, err := gocql.RandomUUID()
+		if err != nil {
+			slog.Error("fail to make random uuid for jti")
+			return nil, "", err
+		}
+		at, rt, err := s.createLoginTokens(id.String(), jti.String(), constant.RoleUser)
 		if err != nil {
 			return nil, "", err
 		}
-		err = s.repository.SaveRefreshTokenById(id, rt)
+		err = s.repository.SaveRefreshTokenJTIById(id, jti)
 		if err != nil {
 			return nil, "", err
 		}
@@ -121,8 +130,13 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 		return nil, "", err
 	}
 
-	at, rt, err := s.createLoginTokens(id.String(), constant.RoleUser)
-	err = s.repository.SaveRefreshTokenById(id, rt)
+	jti, err := gocql.RandomUUID()
+	if err != nil {
+		slog.Error("fail to make random uuid for jti")
+		return nil, "", err
+	}
+	at, rt, err := s.createLoginTokens(id.String(), jti.String(), constant.RoleUser)
+	err = s.repository.SaveRefreshTokenJTIById(id, jti)
 	if err != nil {
 		return nil, "", err
 	}

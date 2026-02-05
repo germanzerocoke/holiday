@@ -9,14 +9,15 @@ import (
 	"github.com/apache/cassandra-gocql-driver/v2"
 )
 
-func (r *Repository) SaveEmailMember(id gocql.UUID, email, password string) error {
+func (r *Repository) SaveEmailLoginInfo(id gocql.UUID, email, password string) error {
+	t := time.Now()
 	err := r.session.Batch(gocql.LoggedBatch).
 		Query(
 			"INSERT INTO member_by_email (email_verified, phone_number_verified, id, email, password, role, created_time) VALUES (?, ?, ?, ?, ?, ?, ?);",
-			false, false, id, email, password, constant.RoleUser, time.Now()).
+			false, false, id, email, password, constant.RoleUser, t).
 		Query(
 			"INSERT INTO member_by_id (email_verified, phone_number_verified, id, email, role, created_time) VALUES (?, ?, ?, ?, ?, ?)",
-			false, false, id, email, constant.RoleUser, time.Now()).
+			false, false, id, email, constant.RoleUser, t).
 		Exec()
 	if err != nil {
 		slog.Error("fail to save member",
@@ -25,7 +26,7 @@ func (r *Repository) SaveEmailMember(id gocql.UUID, email, password string) erro
 		)
 		return err
 	}
-	return err
+	return nil
 }
 
 func (r *Repository) FindEmailById(id gocql.UUID) (email string, err error) {
