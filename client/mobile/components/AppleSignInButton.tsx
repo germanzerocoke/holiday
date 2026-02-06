@@ -32,13 +32,13 @@ export default function AppleSignInButton() {
       },
       {
         onSuccess: async (data) => {
-          if(!data.phoneNumberVerified){
-            router.push("/auth/phonenumber")
-            return
+          if (!data.phoneNumberVerified) {
+            router.push("/auth/phonenumber");
+            return;
           }
-          router.push("/home")
+          router.push("/home");
         },
-      }
+      },
     );
   };
 

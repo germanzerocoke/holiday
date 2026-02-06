@@ -167,6 +167,7 @@ func (s *Service) VerifyEmailOTP(otp, verificationId string) (*dto.EmailOTPVerif
 	vid, err := gocql.ParseUUID(verificationId)
 	if err != nil {
 		slog.Info("fail to parse uuid from verificationId in req", err)
+		return nil, err
 	}
 	email, dbOTP, err := s.repository.FindEmailAndOTPByVerificationId(vid)
 	if err != nil {

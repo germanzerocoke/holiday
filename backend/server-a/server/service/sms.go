@@ -22,7 +22,10 @@ func (s *Service) SendSMSOTP(phoneNumber string) (*dto.OTPSendResponse, error) {
 
 	resp, err := s.twilioClient.VerifyV2.CreateVerification(serviceSid, params)
 	if err != nil {
-		slog.Info("fail to send sms otp code", err)
+		slog.Info("fail to send sms otp code",
+			"err", err,
+			"phoneNumber", phoneNumber,
+		)
 		return nil, err
 	}
 	if resp.Status != nil {

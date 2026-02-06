@@ -130,7 +130,7 @@ function useSignInWithApple() {
         type: "error",
         text1: error.message,
       });
-    }
+    },
   });
 }
 

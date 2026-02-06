@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -20,7 +18,7 @@ import (
 func (s *Service) SignInWithApple(
 	ctx context.Context,
 	user,
-	rawNonce,
+	nonce,
 	identityToken string,
 	email *string,
 ) (
@@ -50,7 +48,7 @@ func (s *Service) SignInWithApple(
 
 	defer keyRes.Body.Close()
 
-	var jwks map[string]any
+	var jwks jwt.VerificationKeySet
 	err = json.NewDecoder(keyRes.Body).Decode(&jwks)
 	if err != nil {
 		slog.Error("fail to decode jwks in time",
@@ -61,17 +59,12 @@ func (s *Service) SignInWithApple(
 	}
 
 	idt, err := jwt.Parse(identityToken, func(token *jwt.Token) (any, error) {
-		if token.Method.Alg() != jwt.SigningMethodES256.Alg() {
+		if token.Method.Alg() != jwt.SigningMethodRS256.Alg() {
 			slog.Info("unexpected signing method")
 			return nil, errors.New(message.AppleSignInFailed)
 		}
-		return jwks, nil
+		return jwks.Keys, nil
 	})
-
-	if !idt.Valid {
-		slog.Info("token is not valid")
-		return nil, "", errors.New(message.AppleSignInFailed)
-	}
 
 	issFromClaims, err := idt.Claims.GetIssuer()
 	if err != nil {
@@ -98,7 +91,7 @@ func (s *Service) SignInWithApple(
 		return nil, "", errors.New(message.AppleSignInFailed)
 	}
 
-	if len(audsFromClaims) != 0 || audsFromClaims[0] != s.audience {
+	if len(audsFromClaims) == 0 || audsFromClaims[0] != s.audience {
 		slog.Info("no audience or not expected audience")
 		return nil, "", errors.New(message.AppleSignInFailed)
 	}
@@ -120,9 +113,7 @@ func (s *Service) SignInWithApple(
 		return nil, "", errors.New(message.AppleSignInFailed)
 	}
 
-	sum := sha256.Sum256([]byte(rawNonce))
-	hashedNonce := base64.RawURLEncoding.EncodeToString(sum[:])
-	if nonceFromClaims != hashedNonce {
+	if nonceFromClaims != nonce {
 		slog.Info("not expected identityToken's nonce")
 		return nil, "", errors.New(message.AppleSignInFailed)
 	}
@@ -145,15 +136,18 @@ func (s *Service) SignInWithApple(
 		if err != nil {
 			return nil, "", errors.New(message.AppleSignInFailed)
 		}
+
 		sessionId, err := gocql.RandomUUID()
 		if err != nil {
 			slog.Error("fail to generate random uuid for session")
 			return nil, "", errors.New(message.AppleSignInFailed)
 		}
+
 		err = s.repository.SaveEmailBySessionId(sessionId, *email)
 		if err != nil {
 			return nil, "", errors.New(message.AppleSignInFailed)
 		}
+
 		resp := dto.SignInWithAppleResponse{
 			PhoneNumberVerified: false,
 			SessionId:           sessionId.String(),
