@@ -1,7 +1,8 @@
 package dto
 
 type SMSOTPSendRequest struct {
-	PhoneNumber string `json:"phoneNumber"`
+	SessionId   *string `json:"sessionId"` //nullable
+	PhoneNumber string  `json:"phoneNumber"`
 }
 type SMSOTPVerifyRequest struct {
 	SessionId      *string `json:"sessionId"` //nullable

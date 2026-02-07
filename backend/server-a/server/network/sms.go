@@ -20,7 +20,7 @@ func (n *Network) sendSMSOTP(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	result, err := n.service.SendSMSOTP(req.PhoneNumber)
+	result, err := n.service.SendSMSOTP(req.SessionId, req.PhoneNumber)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return

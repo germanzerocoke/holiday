@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -8,12 +9,27 @@ import (
 	"server-a/server/dto"
 
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
+	"github.com/google/uuid"
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
 
 	_ "github.com/joho/godotenv/autoload"
 )
 
-func (s *Service) SendSMSOTP(phoneNumber string) (*dto.OTPSendResponse, error) {
+func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (*dto.OTPSendResponse, error) {
+	if sessionId != nil {
+		email, err := s.repository.FindEmailByPhoneNumber(phoneNumber)
+		if errors.Is(err, gocql.ErrNotFound) {
+			err = nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if email != "" {
+			//TODO: ban this account by counting if he kept trying to use already linked phone number
+			return nil, errors.New("this phone number already linked with other account")
+		}
+	}
+
 	serviceSid := os.Getenv("TWILIO_SERVICE_SID")
 
 	params := &verify.CreateVerificationParams{}
@@ -73,6 +89,20 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 	if err != nil {
 		return nil, "", err
 	}
+
+	if sessionId != nil {
+		e, err := s.repository.FindEmailByPhoneNumber(phoneNumber)
+		if errors.Is(err, gocql.ErrNotFound) {
+			err = nil
+		}
+		if err != nil {
+			return nil, "", err
+		}
+		if e != "" {
+			return nil, "", errors.New("this phone number already linked with other account")
+		}
+	}
+
 	params := &verify.CreateVerificationCheckParams{}
 	params.SetTo(phoneNumber)
 	params.SetCode(otp)
@@ -99,7 +129,19 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 	}
 
 	if sessionId == nil {
-		id := gocql.TimeUUID()
+		id, err := s.repository.FindIdByPhoneNumber(phoneNumber)
+		if errors.Is(err, gocql.ErrNotFound) {
+			err = nil
+			idv7, err := uuid.NewV7()
+			if err != nil {
+				slog.Error("fail to create uuid v7 for apple sign in user")
+				return nil, "", err
+			}
+			id = gocql.UUID(idv7)
+		}
+		if err != nil {
+			return nil, "", err
+		}
 		err = s.repository.SavePhoneNumberLoginInfo(phoneNumber, id)
 		if err != nil {
 			return nil, "", err
@@ -124,11 +166,23 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 		return &r, rt, nil
 	}
 
-	id, role, createdTime, err := s.repository.FindMemberInfoByEmail(email)
+	id, role, err := s.repository.FindMemberInfoByEmail(email)
 	if err != nil {
 		return nil, "", err
 	}
-	err = s.repository.LinkPhoneNumberToMember(id, email, phoneNumber, role, createdTime)
+
+	id, err = s.repository.FindIdByPhoneNumber(phoneNumber)
+	if err == nil {
+		//TODO: DELETE the email row and replace the row with this id
+	}
+	if errors.Is(err, gocql.ErrNotFound) {
+		err = nil
+	}
+	if err != nil {
+		return nil, "", err
+	}
+
+	err = s.repository.LinkPhoneNumberToMember(id, email, phoneNumber, role)
 	if err != nil {
 		return nil, "", err
 	}

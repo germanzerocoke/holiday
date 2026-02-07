@@ -13,6 +13,7 @@ import (
 
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 func (s *Service) SignInWithApple(
@@ -131,28 +132,86 @@ func (s *Service) SignInWithApple(
 	}
 
 	if email != nil {
-		id := gocql.TimeUUID()
-		err = s.repository.SaveAppleSignInInfo(id, user, *email)
+		_, phoneNumberVerified, id, _, role, err := s.repository.FindLoginInfoByEmail(*email)
+		if errors.Is(err, gocql.ErrNotFound) {
+			err = nil
+			idv7, err := uuid.NewV7()
+			if err != nil {
+				slog.Error("fail to create uuid v7 for apple sign in user")
+				return nil, "", errors.New(message.AppleSignInFailed)
+			}
+			id = gocql.UUID(idv7)
+			err = s.repository.SaveAppleSignInInfo(id, user, *email, false)
+			if err != nil {
+				return nil, "", errors.New(message.AppleSignInFailed)
+			}
+
+			sessionId, err := gocql.RandomUUID()
+			if err != nil {
+				slog.Error("fail to generate random uuid for session")
+				return nil, "", errors.New(message.AppleSignInFailed)
+			}
+
+			err = s.repository.SaveEmailBySessionId(sessionId, *email)
+			if err != nil {
+				return nil, "", errors.New(message.AppleSignInFailed)
+			}
+
+			resp := dto.SignInWithAppleResponse{
+				PhoneNumberVerified: false,
+				SessionId:           sessionId.String(),
+			}
+			return &resp, "", nil
+		}
 		if err != nil {
 			return nil, "", errors.New(message.AppleSignInFailed)
 		}
 
-		sessionId, err := gocql.RandomUUID()
+		err = s.repository.SaveAppleSignInInfo(id, user, *email, phoneNumberVerified)
 		if err != nil {
-			slog.Error("fail to generate random uuid for session")
 			return nil, "", errors.New(message.AppleSignInFailed)
 		}
 
-		err = s.repository.SaveEmailBySessionId(sessionId, *email)
+		if !phoneNumberVerified {
+			sessionId, err := gocql.RandomUUID()
+			if err != nil {
+				slog.Error("fail to generate random uuid for session")
+				return nil, "", errors.New(message.AppleSignInFailed)
+			}
+
+			err = s.repository.SaveEmailBySessionId(sessionId, *email)
+			if err != nil {
+				return nil, "", errors.New(message.AppleSignInFailed)
+			}
+
+			resp := dto.SignInWithAppleResponse{
+				PhoneNumberVerified: false,
+				SessionId:           sessionId.String(),
+			}
+			return &resp, "", nil
+		}
+		jti, err := gocql.RandomUUID()
+		if err != nil {
+			slog.Error("fail to create random uuid for jti")
+			return nil, "", errors.New(message.AppleSignInFailed)
+		}
+
+		at, rt, err := s.createLoginTokens(id.String(), jti.String(), role)
+		if err != nil {
+			return nil, "", errors.New(message.AppleSignInFailed)
+		}
+
+		err = s.repository.SaveRefreshTokenJTIById(id, jti)
 		if err != nil {
 			return nil, "", errors.New(message.AppleSignInFailed)
 		}
 
 		resp := dto.SignInWithAppleResponse{
-			PhoneNumberVerified: false,
-			SessionId:           sessionId.String(),
+			PhoneNumberVerified: true,
+			AccessToken:         at,
 		}
-		return &resp, "", nil
+		return &resp, rt, nil
+
 	}
 
 	id, emailFromDB, role, err := s.repository.FindAppleSignInInfoByUser(user)

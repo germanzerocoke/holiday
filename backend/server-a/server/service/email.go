@@ -12,17 +12,18 @@ import (
 	"strconv"
 
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
+	"github.com/google/uuid"
 	_ "github.com/joho/godotenv/autoload"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (s *Service) CheckEmailUsable(ctx context.Context, email string) (bool, error) {
-	i, err := s.repository.EmailExists(ctx, email)
+	isTaken, err := s.repository.EmailExists(ctx, email)
 	if err != nil {
 		return false, err
 	}
 
-	if i {
+	if isTaken {
 		log.Printf("email already exist")
 		return false, nil
 	}
@@ -47,7 +48,12 @@ func (s *Service) CreateMemberByEmail(ctx context.Context, email, password strin
 	}
 
 	password = string(hashedPassword)
-	id := gocql.TimeUUID()
+	idv7, err := uuid.NewV7()
+	if err != nil {
+		slog.Error("fail to create uuid v7 for apple sign in user")
+		return nil, err
+	}
+	id := gocql.UUID(idv7)
 	err = s.repository.SaveEmailLoginInfo(id, email, password)
 	if err != nil {
 		return nil, err

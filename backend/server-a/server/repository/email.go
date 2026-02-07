@@ -4,20 +4,18 @@ import (
 	"context"
 	"log/slog"
 	"server-a/server/constant"
-	"time"
 
 	"github.com/apache/cassandra-gocql-driver/v2"
 )
 
 func (r *Repository) SaveEmailLoginInfo(id gocql.UUID, email, password string) error {
-	t := time.Now()
 	err := r.session.Batch(gocql.LoggedBatch).
 		Query(
-			"INSERT INTO member_by_email (email_verified, phone_number_verified, id, email, password, role, created_time) VALUES (?, ?, ?, ?, ?, ?, ?);",
-			false, false, id, email, password, constant.RoleUser, t).
+			"INSERT INTO member_by_email (email_verified, phone_number_verified, id, email, password, role) VALUES (?, ?, ?, ?, ?, ?);",
+			false, false, id, email, password, constant.RoleUser).
 		Query(
-			"INSERT INTO member_by_id (email_verified, phone_number_verified, id, email, role, created_time) VALUES (?, ?, ?, ?, ?, ?)",
-			false, false, id, email, constant.RoleUser, t).
+			"INSERT INTO member_by_id (email_verified, phone_number_verified, id, email, role) VALUES (?, ?, ?, ?, ?)",
+			false, false, id, email, constant.RoleUser).
 		Exec()
 	if err != nil {
 		slog.Error("fail to save member",
@@ -176,16 +174,16 @@ func (r *Repository) FindEmailBySessionId(sessionId gocql.UUID) (email string, e
 	return email, nil
 }
 
-func (r *Repository) FindMemberInfoByEmail(email string) (id gocql.UUID, role string, t time.Time, err error) {
-	err = r.session.Query("SELECT id, role, created_time FROM member_by_email WHERE email = ?",
+func (r *Repository) FindMemberInfoByEmail(email string) (id gocql.UUID, role string, err error) {
+	err = r.session.Query("SELECT id, role FROM member_by_email WHERE email = ?",
 		email,
-	).Scan(&id, &role, &t)
+	).Scan(&id, &role)
 	if err != nil {
 		slog.Error("fail to select id at member_by_email",
 			"err", err,
 			"email", email,
 		)
-		return gocql.UUID{}, "", time.Time{}, err
+		return gocql.UUID{}, "", err
 	}
-	return id, role, t, nil
+	return id, role, nil
 }

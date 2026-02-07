@@ -1,10 +1,8 @@
 package repository
 
 import (
-	"errors"
 	"log/slog"
 	"server-a/server/constant"
-	"time"
 
 	"github.com/apache/cassandra-gocql-driver/v2"
 )
@@ -40,27 +38,14 @@ func (r *Repository) FindPhoneNumberByVerificationId(verificationId gocql.UUID) 
 }
 
 func (r *Repository) SavePhoneNumberLoginInfo(phoneNumber string, id gocql.UUID) error {
-	err := r.session.Query(
-		"SELECT id FROM member_by_phone_number WHERE phone_number = ?",
-		phoneNumber,
-	).Scan(&id)
-	if err != nil && !errors.Is(err, gocql.ErrNotFound) {
-		slog.Error("fail to select id from member_by_phone_number",
-			"err", err,
-			"phoneNumber", phoneNumber,
-		)
-		return err
-	}
-
-	t := time.Now()
-	err = r.session.Batch(gocql.LoggedBatch).
+	err := r.session.Batch(gocql.LoggedBatch).
 		Query(
-			"INSERT INTO member_by_phone_number (phone_number_verified, id, phone_number, role, created_time) VALUES (?, ?, ?, ?, ?)",
-			true, id, phoneNumber, constant.RoleUser, t,
+			"INSERT INTO member_by_phone_number (phone_number_verified, id, phone_number, role) VALUES (?, ?, ?, ?)",
+			true, id, phoneNumber, constant.RoleUser,
 		).
 		Query(
-			"INSERT INTO member_by_id (phone_number_verified, id, phone_number, role, created_time) VALUES (?, ?, ?, ?, ?)",
-			true, id, phoneNumber, constant.RoleUser, t,
+			"INSERT INTO member_by_id (phone_number_verified, id, phone_number, role) VALUES (?, ?, ?, ?)",
+			true, id, phoneNumber, constant.RoleUser,
 		).Exec()
 	if err != nil {
 		slog.Error("fail to insert member at member_by_id",
@@ -72,14 +57,14 @@ func (r *Repository) SavePhoneNumberLoginInfo(phoneNumber string, id gocql.UUID)
 	return nil
 }
 
-func (r *Repository) LinkPhoneNumberToMember(id gocql.UUID, email, phoneNumber, role string, createdTime time.Time) error {
+func (r *Repository) LinkPhoneNumberToMember(id gocql.UUID, email, phoneNumber, role string) error {
 	err := r.session.Batch(gocql.LoggedBatch).
 		Query("UPDATE member_by_email SET phone_number_verified = ?, phone_number = ? WHERE email = ?",
 			true, phoneNumber, email).
 		Query("UPDATE member_by_id SET phone_number_verified = ?, phone_number = ? WHERE id = ?",
 			true, phoneNumber, id).
-		Query("INSERT INTO member_by_phone_number (phone_number_verified, id, email, phone_number, role, created_time) VALUES (?, ?, ?, ?, ?, ?)",
-			true, id, email, phoneNumber, role, createdTime).
+		Query("INSERT INTO member_by_phone_number (phone_number_verified, id, email, phone_number, role) VALUES (?, ?, ?, ?, ?)",
+			true, id, email, phoneNumber, role).
 		Exec()
 	if err != nil {
 		slog.Error("fail to set phone_number",
@@ -100,6 +85,52 @@ func (r *Repository) FindPhoneNumberVerifiedById(id gocql.UUID) (phoneNumberVeri
 	).Scan(&phoneNumberVerified)
 	if err != nil {
 		slog.Error("fail to find phone number verified by id")
+		return false, err
 	}
 	return phoneNumberVerified, nil
+}
+
+func (r *Repository) FindIdByPhoneNumber(phoneNumber string) (id gocql.UUID, err error) {
+	err = r.session.Query(
+		"SELECT id FROM member_by_phone_number WHERE phone_number = ?",
+		phoneNumber,
+	).Scan(&id)
+	if err != nil {
+		slog.Info("fail to find id by phone number")
+		return gocql.UUID{}, err
+	}
+	return id, nil
+}
+
+func (r *Repository) PhoneNumberExist(phoneNumber string) (bool, error) {
+	var c int64
+	err := r.session.Query(
+		"SELECT COUNT(1) FROM member_by_phone_number WHERE phone_number = ?",
+		phoneNumber,
+	).Scan(&c)
+	if c == 0 {
+		return false, nil
+	}
+	if err != nil {
+		slog.Error("fail to check phone number existence",
+			"err", err,
+			"phoneNumber", phoneNumber,
+		)
+		return true, err
+	}
+	return true, nil
+}
+
+func (r *Repository) FindEmailByPhoneNumber(phoneNumber string) (email string, err error) {
+	err = r.session.Query(
+		"SELECT email FROM member_by_phone_number WHERE phone_number = ?",
+		phoneNumber,
+	).Scan(&email)
+	if err != nil {
+		slog.Info("fail to find email by phone number",
+			"phoneNumber", phoneNumber,
+		)
+		return "", err
+	}
+	return email, nil
 }

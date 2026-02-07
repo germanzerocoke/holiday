@@ -3,23 +3,21 @@ package repository
 import (
 	"log/slog"
 	"server-a/server/constant"
-	"time"
 
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
 )
 
-func (r *Repository) SaveAppleSignInInfo(id gocql.UUID, appleSignInUser, email string) error {
-	t := time.Now()
+func (r *Repository) SaveAppleSignInInfo(id gocql.UUID, appleSignInUser, email string, phoneNumberVerified bool) error {
 	err := r.session.Batch(gocql.LoggedBatch).
 		Query(
-			"INSERT INTO member_by_email (email_verified, phone_number_verified, id, apple_sign_in_user, email, role, created_time) VALUES (?, ?, ?, ?, ?, ?, ?);",
-			true, false, id, appleSignInUser, email, constant.RoleUser, t).
+			"INSERT INTO member_by_email (email_verified, phone_number_verified, id, apple_sign_in_user, email, role) VALUES (?, ?, ?, ?, ?, ?);",
+			true, phoneNumberVerified, id, appleSignInUser, email, constant.RoleUser).
 		Query(
-			"INSERT INTO member_by_id (email_verified, phone_number_verified, id, apple_sign_in_user, email, role, created_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
-			true, false, id, appleSignInUser, email, constant.RoleUser, t).
+			"INSERT INTO member_by_id (email_verified, phone_number_verified, id, apple_sign_in_user, email, role) VALUES (?, ?, ?, ?, ?, ?)",
+			true, phoneNumberVerified, id, appleSignInUser, email, constant.RoleUser).
 		Query(
-			"INSERT INTO member_by_apple_sign_in_user (email_verified, id, apple_sign_in_user, email, role, created_time) VALUES (?, ?, ?, ?, ?, ?)",
-			true, id, appleSignInUser, email, constant.RoleUser, t).
+			"INSERT INTO member_by_apple_sign_in_user (email_verified, id, apple_sign_in_user, email, role) VALUES (?, ?, ?, ?, ?)",
+			true, id, appleSignInUser, email, constant.RoleUser).
 		Exec()
 	if err != nil {
 		slog.Error("fail to save apple sign in info",
