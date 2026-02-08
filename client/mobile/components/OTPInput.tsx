@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { Controller, useFormContext } from "react-hook-form";
 import InputField from "@/components/InputField";
 

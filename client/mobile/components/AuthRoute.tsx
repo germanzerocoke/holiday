@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
 

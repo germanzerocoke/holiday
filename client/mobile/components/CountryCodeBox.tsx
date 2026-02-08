@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { Controller, useFormContext } from "react-hook-form";
 import { CountryCode, getCountryCallingCode } from "libphonenumber-js";
-import { Alpha2Code } from "i18n-iso-countries";
 import { colors } from "@/constants";
 import { getLocales } from "expo-localization";
 

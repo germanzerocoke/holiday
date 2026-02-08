@@ -1,14 +1,14 @@
-import { Stack, useFocusEffect } from "expo-router";
-import { Pressable } from "react-native";
+import { Stack } from "expo-router";
 
 export default function InitLayout() {
-
-  return <Stack>
-    <Stack.Screen
-      name="index"
-      options={{
-        headerShown: false
-      }}
-    />
-  </Stack>;
+  return (
+    <Stack>
+      <Stack.Screen
+        name="index"
+        options={{
+          headerShown: false,
+        }}
+      />
+    </Stack>
+  );
 }

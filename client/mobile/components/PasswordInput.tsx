@@ -1,6 +1,5 @@
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { colors } from "@/constants";
 import InputField from "@/components/InputField";
 import { TextInputProps } from "react-native";
 
