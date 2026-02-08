@@ -6,14 +6,13 @@ import (
 	"log"
 	"log/slog"
 	"server-a/server/constant"
-	"server-a/server/dto"
 	"time"
 
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (s *Service) GenerateAccessToken(refreshToken string) (*dto.TokenRefreshResponse, error) {
+func (s *Service) GenerateAccessToken(refreshToken string) (map[string]string, error) {
 	rt, err := jwt.Parse(refreshToken, func(token *jwt.Token) (any, error) {
 		if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 			return nil, fmt.Errorf("unexpected signing method: %s", token.Method.Alg())
@@ -63,9 +62,9 @@ func (s *Service) GenerateAccessToken(refreshToken string) (*dto.TokenRefreshRes
 	if err != nil {
 		return nil, err
 	}
-	resp := dto.TokenRefreshResponse{AccessToken: at}
+	resp := map[string]string{"accessToken": at}
 
-	return &resp, nil
+	return resp, nil
 }
 
 func (s *Service) createLoginTokens(id, jti, role string) (accessToken, refreshToken string, err error) {

@@ -14,7 +14,7 @@ interface FormValue {
 }
 
 export default function LoginScreen() {
-  const { emailLoginMutation } = useAuth();
+  const { loginWithEmailMutation } = useAuth();
 
   const emailLoginForm = useForm<FormValue>({
     defaultValues: {
@@ -26,7 +26,7 @@ export default function LoginScreen() {
   const onSubmit = (formValues: FormValue) => {
     const { email, password } = formValues;
 
-    emailLoginMutation.mutate(
+    loginWithEmailMutation.mutate(
       {
         email,
         password,

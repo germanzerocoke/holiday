@@ -18,7 +18,7 @@ func emailRouter(n *Network) {
 }
 
 func (n *Network) createMemberByEmail(c *gin.Context) {
-	var req dto.EmailMemberSaveRequest
+	var req dto.SignInWithEmailRequest
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -34,7 +34,7 @@ func (n *Network) createMemberByEmail(c *gin.Context) {
 }
 
 func (n *Network) loginWithEmail(c *gin.Context) {
-	var req dto.EmailMemberLoginRequest
+	var req dto.SignInWithEmailRequest
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -60,7 +60,7 @@ func (n *Network) loginWithEmail(c *gin.Context) {
 }
 
 func (n *Network) checkEmail(c *gin.Context) {
-	var req dto.EmailRequest
+	var req dto.CheckEmailRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
@@ -76,7 +76,7 @@ func (n *Network) checkEmail(c *gin.Context) {
 }
 
 func (n *Network) sendEmailOTP(c *gin.Context) {
-	var req dto.EmailOTPSendRequest
+	var req dto.SendEmailOTPRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
@@ -91,7 +91,7 @@ func (n *Network) sendEmailOTP(c *gin.Context) {
 }
 
 func (n *Network) verifyEmailOTP(c *gin.Context) {
-	var req dto.EmailOTPVerifyRequest
+	var req dto.VerifyEmailOTPRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())

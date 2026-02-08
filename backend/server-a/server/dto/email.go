@@ -1,19 +1,14 @@
 package dto
 
-type EmailRequest struct {
+type CheckEmailRequest struct {
 	Email string `json:"email"`
 }
-type EmailMemberSaveRequest struct {
+type SignInWithEmailRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type EmailMemberLoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type EmailLoginResponse struct {
+type LoginWithEmailResponse struct {
 	PhoneNumberVerified bool   `json:"phoneNumberVerified"`
 	EmailVerified       bool   `json:"emailVerified"`
 	Id                  string `json:"id"`
@@ -21,15 +16,15 @@ type EmailLoginResponse struct {
 	AccessToken         string `json:"accessToken"`
 }
 
-type EmailOTPSendRequest struct {
+type SendEmailOTPRequest struct {
 	Id string `json:"id"`
 }
 
-type EmailOTPVerifyRequest struct {
+type VerifyEmailOTPRequest struct {
 	VerificationId string `json:"verificationId"`
 	OTP            string `json:"otp"`
 }
-type EmailOTPVerifyResponse struct {
+type VerifyEmailOTPResponse struct {
 	EmailVerified bool   `json:"emailVerified"`
 	SessionId     string `json:"session_id"`
 }

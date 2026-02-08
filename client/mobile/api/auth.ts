@@ -1,7 +1,7 @@
 import { axiosInstance } from "@/api/axios";
 import {
-  emailLoginResponse,
-  emailSignRequest,
+  loginWithEmailResponse,
+  signInWithEmailRequest,
   sendSMSOTPRequest,
   signInWithAppleRequest,
   signInWithAppleResponse,
@@ -11,15 +11,17 @@ import {
   verifySMSOTPResponse,
 } from "@/types/auth";
 
-export async function postEmailSignup(body: emailSignRequest): Promise<string> {
+export async function signUpWithEmail(
+  body: signInWithEmailRequest,
+): Promise<string> {
   console.log("post email sign up");
   const { data } = await axiosInstance.post("/auth/email/create", body);
   return data;
 }
 
-export async function postEmailLogin(
-  body: emailSignRequest,
-): Promise<emailLoginResponse> {
+export async function loginInWithEmail(
+  body: signInWithEmailRequest,
+): Promise<loginWithEmailResponse> {
   const { data } = await axiosInstance.post("/auth/email/login", body);
   console.log(data);
   return data;

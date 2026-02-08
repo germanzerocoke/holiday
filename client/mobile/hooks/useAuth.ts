@@ -3,8 +3,8 @@ import Toast from "react-native-toast-message";
 import { getSecureStore, saveSecureStore } from "@/util/secureStore";
 import {
   getMe,
-  postEmailLogin,
-  postEmailSignup,
+  loginInWithEmail,
+  signUpWithEmail,
   requestEmailOTP,
   requestSMSOTP,
   signInWithApple,
@@ -22,9 +22,9 @@ function useGetMe() {
   return { data };
 }
 
-function useEmailSignup() {
+function useSignupWithEmail() {
   return useMutation({
-    mutationFn: postEmailSignup,
+    mutationFn: signUpWithEmail,
     onSuccess: async (data) => {
       const { verificationId } = await requestEmailOTP(data);
       saveSecureStore("verificationId", verificationId);
@@ -39,9 +39,9 @@ function useEmailSignup() {
   });
 }
 
-function useEmailLogin() {
+function useLoginWithEmail() {
   return useMutation({
-    mutationFn: postEmailLogin,
+    mutationFn: loginInWithEmail,
     onSuccess: async (data) => {
       if (!data.emailVerified) {
         const { verificationId } = await requestEmailOTP(data.id);
@@ -136,8 +136,8 @@ function useSignInWithApple() {
 
 export function useAuth() {
   // const { data } = useGetMe();
-  const emailSignupMutation = useEmailSignup();
-  const emailLoginMutation = useEmailLogin();
+  const signUpWithEmailMutation = useSignupWithEmail();
+  const loginWithEmailMutation = useLoginWithEmail();
   const verifyEmailOTPMutation = useVerifyEmailOTP();
   const requestSMSOTPMutation = useRequestSMSOTP();
   const verifySMSOTPMutation = useVerifySMSOTP();
@@ -147,8 +147,8 @@ export function useAuth() {
     auth: {
       id: "",
     },
-    emailSignupMutation,
-    emailLoginMutation,
+    signUpWithEmailMutation,
+    loginWithEmailMutation,
     verifyEmailOTPMutation,
     requestSMSOTPMutation,
     verifySMSOTPMutation,

@@ -14,7 +14,7 @@ func smsRouter(n *Network) {
 }
 
 func (n *Network) sendSMSOTP(c *gin.Context) {
-	var req dto.SMSOTPSendRequest
+	var req dto.SendSMSOTPRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
@@ -29,7 +29,7 @@ func (n *Network) sendSMSOTP(c *gin.Context) {
 }
 
 func (n *Network) verifySMSOTP(c *gin.Context) {
-	var req dto.SMSOTPVerifyRequest
+	var req dto.VerifySMSOTPRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())

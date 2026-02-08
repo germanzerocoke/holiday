@@ -3,7 +3,7 @@ export interface Token {
   refreshToken: string;
 }
 
-export interface emailSignRequest {
+export interface signInWithEmailRequest {
   email: string;
   password: string;
 }
@@ -34,7 +34,7 @@ export interface verifySMSOTPResponse {
   accessToken?: string;
 }
 
-export interface emailLoginResponse {
+export interface loginWithEmailResponse {
   emailVerified: boolean;
   phoneNumberVerified: boolean;
   id: string;

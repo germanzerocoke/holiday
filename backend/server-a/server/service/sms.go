@@ -15,7 +15,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (*dto.OTPSendResponse, error) {
+func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (*dto.SendOTPResponse, error) {
 	if sessionId != nil {
 		email, err := s.repository.FindEmailByPhoneNumber(phoneNumber)
 		if errors.Is(err, gocql.ErrNotFound) {
@@ -56,11 +56,11 @@ func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (*dto.OTPSen
 	if err != nil {
 		return nil, err
 	}
-	res := dto.OTPSendResponse{VerificationId: vid.String()}
+	res := dto.SendOTPResponse{VerificationId: vid.String()}
 	return &res, nil
 }
 
-func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*dto.SMSOTPVerifyResponse, string /*refreshToken*/, error) {
+func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*dto.VerifySMSOTPResponse, string /*refreshToken*/, error) {
 	var email string
 	if sessionId != nil {
 		sid, err := gocql.ParseUUID(*sessionId)
@@ -122,7 +122,7 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 		slog.Info("otp is not correct",
 			"otp", otp,
 		)
-		r := dto.SMSOTPVerifyResponse{
+		r := dto.VerifySMSOTPResponse{
 			PhoneNumberVerified: false,
 		}
 		return &r, "", nil
@@ -159,7 +159,7 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 		if err != nil {
 			return nil, "", err
 		}
-		r := dto.SMSOTPVerifyResponse{
+		r := dto.VerifySMSOTPResponse{
 			PhoneNumberVerified: true,
 			AccessToken:         at,
 		}
@@ -194,7 +194,7 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 	if err != nil {
 		return nil, "", err
 	}
-	r := dto.SMSOTPVerifyResponse{
+	r := dto.VerifySMSOTPResponse{
 		PhoneNumberVerified: true,
 		AccessToken:         at,
 	}

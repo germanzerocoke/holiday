@@ -8,8 +8,8 @@ import { deleteSecureStore } from "@/util/secureStore";
 
 export default function AuthScreen() {
   useFocusEffect(() => {
-    deleteSecureStore("verificationId")
-    deleteSecureStore("sessionId")
+    deleteSecureStore("verificationId");
+    deleteSecureStore("sessionId");
   });
 
   return (
@@ -20,7 +20,7 @@ export default function AuthScreen() {
           label={"Start with your Phone number"}
           onPress={() => router.push("/auth/phonenumber")}
         />
-        {Platform.OS === 'ios' && <AppleSignInButton/>}
+        {Platform.OS === "ios" && <AppleSignInButton />}
         <View style={styles.emailContainer}>
           <CustomButton
             label={"Start with your Email"}

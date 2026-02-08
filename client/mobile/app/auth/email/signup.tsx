@@ -15,7 +15,7 @@ interface FormValue {
 }
 
 export default function SignupScreen() {
-  const { emailSignupMutation } = useAuth();
+  const { signUpWithEmailMutation } = useAuth();
 
   const emailSignupForm = useForm<FormValue>({
     defaultValues: {
@@ -28,7 +28,7 @@ export default function SignupScreen() {
   const onSubmit = (formValues: FormValue) => {
     const { email, password } = formValues;
 
-    emailSignupMutation.mutate(
+    signUpWithEmailMutation.mutate(
       {
         email,
         password,
