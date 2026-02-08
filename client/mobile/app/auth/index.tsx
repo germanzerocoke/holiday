@@ -1,11 +1,17 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import CustomButton from "@/components/CustomButton";
-import { Link, router } from "expo-router";
+import { Link, router, useFocusEffect } from "expo-router";
 import { colors } from "@/constants";
 import AppleSignInButton from "@/components/AppleSignInButton";
+import { deleteSecureStore } from "@/util/secureStore";
 
 export default function AuthScreen() {
+  useFocusEffect(() => {
+    deleteSecureStore("verificationId")
+    deleteSecureStore("sessionId")
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.buttonContainer}>

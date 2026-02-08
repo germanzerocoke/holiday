@@ -1,24 +1,25 @@
 import { axiosInstance } from "@/api/axios";
 import {
-  EmailLoginResponse,
-  EmailSignRequest,
-  SignInWithAppleRequest,
-  SignInWithAppleResponse,
-  VerifyEmailOTPRequest,
-  VerifyEmailOTPResponse,
-  VerifySMSOTPRequest,
-  VerifySMSOTPResponse,
+  emailLoginResponse,
+  emailSignRequest,
+  sendSMSOTPRequest,
+  signInWithAppleRequest,
+  signInWithAppleResponse,
+  verifyEmailOTPRequest,
+  verifyEmailOTPResponse,
+  verifySMSOTPRequest,
+  verifySMSOTPResponse,
 } from "@/types/auth";
 
-export async function postEmailSignup(body: EmailSignRequest): Promise<string> {
+export async function postEmailSignup(body: emailSignRequest): Promise<string> {
   console.log("post email sign up");
   const { data } = await axiosInstance.post("/auth/email/create", body);
   return data;
 }
 
 export async function postEmailLogin(
-  body: EmailSignRequest,
-): Promise<EmailLoginResponse> {
+  body: emailSignRequest,
+): Promise<emailLoginResponse> {
   const { data } = await axiosInstance.post("/auth/email/login", body);
   console.log(data);
   return data;
@@ -31,30 +32,30 @@ export async function requestEmailOTP(
   return data;
 }
 
-export async function requestSMSOTP(phoneNumber: string) {
-  const { data } = await axiosInstance.post("/auth/sms/otp/send", {
-    phoneNumber,
-  });
+export async function requestSMSOTP(
+  body: sendSMSOTPRequest,
+): Promise<{ verificationId: string }> {
+  const { data } = await axiosInstance.post("/auth/sms/otp/send", body);
   return data;
 }
 
 export async function verifyEmailOTP(
-  body: VerifyEmailOTPRequest,
-): Promise<VerifyEmailOTPResponse> {
+  body: verifyEmailOTPRequest,
+): Promise<verifyEmailOTPResponse> {
   const { data } = await axiosInstance.post("/auth/email/otp/verify", body);
   return data;
 }
 
 export async function verifySMSOTP(
-  body: VerifySMSOTPRequest,
-): Promise<VerifySMSOTPResponse> {
+  body: verifySMSOTPRequest,
+): Promise<verifySMSOTPResponse> {
   const { data } = await axiosInstance.post("/auth/sms/otp/verify", body);
   return data;
 }
 
 export async function signInWithApple(
-  body: SignInWithAppleRequest,
-): Promise<SignInWithAppleResponse> {
+  body: signInWithAppleRequest,
+): Promise<signInWithAppleResponse> {
   const { data } = await axiosInstance.post("/auth/email/apple", body);
   return data;
 }

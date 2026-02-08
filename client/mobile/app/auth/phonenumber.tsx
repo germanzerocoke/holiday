@@ -67,18 +67,24 @@ export default function PhonenumberScreen() {
     }
 
     console.log("execute mutate");
-    requestSMSOTPMutation.mutate(wholeNumber, {
-      onSuccess: async () => {
-        await saveSecureStore("timeSmsLastSent", String(Date.now()));
-        router.push("/auth/otp/sms");
+    requestSMSOTPMutation.mutate(
+      {
+        sessionId: await getSecureStore("sessionId"),
+        phoneNumber: wholeNumber,
       },
-      onError: (error) => {
-        Toast.show({
-          type: "error",
-          text1: error.message,
-        });
+      {
+        onSuccess: async () => {
+          await saveSecureStore("timeSmsLastSent", String(Date.now()));
+          router.push("/auth/otp/sms");
+        },
+        onError: (error) => {
+          Toast.show({
+            type: "error",
+            text1: error.message,
+          });
+        },
       },
-    });
+    );
   };
 
   return (
