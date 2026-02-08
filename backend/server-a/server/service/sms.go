@@ -134,7 +134,7 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 			err = nil
 			idv7, err := uuid.NewV7()
 			if err != nil {
-				slog.Error("fail to create uuid v7 for apple sign in user")
+				slog.Error("fail to create uuid v7 for phone number sign in user")
 				return nil, "", err
 			}
 			id = gocql.UUID(idv7)
@@ -166,23 +166,20 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 		return &r, rt, nil
 	}
 
-	id, role, err := s.repository.FindMemberInfoByEmail(email)
+	_, _, id, password, role, err := s.repository.FindLoginInfoByEmail(email)
 	if err != nil {
 		return nil, "", err
 	}
 
-	id, err = s.repository.FindIdByPhoneNumber(phoneNumber)
+	oldAccountId, err := s.repository.FindIdByPhoneNumber(phoneNumber)
 	if err == nil {
-		//TODO: DELETE the email row and replace the row with this id
+		err = s.repository.ReplaceAndLinkMemberWithOldAccount(id, oldAccountId, email, password, phoneNumber)
+		id = oldAccountId
 	}
 	if errors.Is(err, gocql.ErrNotFound) {
 		err = nil
+		err = s.repository.LinkAndMarkVerifiedPhoneNumber(id, email, phoneNumber, role)
 	}
-	if err != nil {
-		return nil, "", err
-	}
-
-	err = s.repository.LinkPhoneNumberToMember(id, email, phoneNumber, role)
 	if err != nil {
 		return nil, "", err
 	}

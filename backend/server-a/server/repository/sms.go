@@ -57,7 +57,7 @@ func (r *Repository) SavePhoneNumberLoginInfo(phoneNumber string, id gocql.UUID)
 	return nil
 }
 
-func (r *Repository) LinkPhoneNumberToMember(id gocql.UUID, email, phoneNumber, role string) error {
+func (r *Repository) LinkAndMarkVerifiedPhoneNumber(id gocql.UUID, email, phoneNumber, role string) error {
 	err := r.session.Batch(gocql.LoggedBatch).
 		Query("UPDATE member_by_email SET phone_number_verified = ?, phone_number = ? WHERE email = ?",
 			true, phoneNumber, email).
@@ -133,4 +133,24 @@ func (r *Repository) FindEmailByPhoneNumber(phoneNumber string) (email string, e
 		return "", err
 	}
 	return email, nil
+}
+
+func (r *Repository) ReplaceAndLinkMemberWithOldAccount(newId, oldAccountId gocql.UUID, email, password, phoneNumber string) error {
+	err := r.session.Batch(gocql.LoggedBatch).
+		Query("DELETE FROM member_by_id WHERE id = ?",
+			newId).
+		Query("UPDATE member_by_id SET email = ?, password = ?, email_verified = ? WHERE id = ?",
+			email, password, true, oldAccountId,
+		).
+		Query("UPDATE member_by_email SET id = ?, phone_number = ?, phone_number_verified = ? WHERE email = ?",
+			oldAccountId, phoneNumber, true, email,
+		).
+		Query("UPDATE member_by_phone_number SET email = ? WHERE phone_number = ?",
+			email, phoneNumber).
+		Exec()
+	if err != nil {
+		slog.Error("fail to replace and link member with old phone number account")
+		return err
+	}
+	return nil
 }

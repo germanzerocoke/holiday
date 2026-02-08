@@ -24,7 +24,9 @@ func (s *Service) CheckEmailUsable(ctx context.Context, email string) (bool, err
 	}
 
 	if isTaken {
-		log.Printf("email already exist")
+		slog.Info("this email already exist",
+			"email", email,
+		)
 		return false, nil
 	}
 	return true, nil
@@ -50,7 +52,7 @@ func (s *Service) CreateMemberByEmail(ctx context.Context, email, password strin
 	password = string(hashedPassword)
 	idv7, err := uuid.NewV7()
 	if err != nil {
-		slog.Error("fail to create uuid v7 for apple sign in user")
+		slog.Error("fail to create uuid v7 for email password sign in user")
 		return nil, err
 	}
 	id := gocql.UUID(idv7)
