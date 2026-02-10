@@ -22,7 +22,7 @@ func (n *Network) sendSMSOTP(c *gin.Context) {
 	}
 	result, err := n.service.SendSMSOTP(req.SessionId, req.PhoneNumber)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -37,7 +37,7 @@ func (n *Network) verifySMSOTP(c *gin.Context) {
 	}
 	result, rt, err := n.service.VerifySMSOTP(req.SessionId, req.OTP, req.VerificationId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 		return
 	}
 	if rt != "" {

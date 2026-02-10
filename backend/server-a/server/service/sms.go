@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"os"
 	"server-a/server/constant"
@@ -22,11 +21,11 @@ func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (*dto.SendOT
 			err = nil
 		}
 		if err != nil {
-			return nil, err
+			return nil, ErrSendSMSOTP
 		}
 		if email != "" {
 			//TODO: ban this account by counting if he kept trying to use already linked phone number
-			return nil, errors.New("this phone number already linked with other account")
+			return nil, ErrPhoneNumberAlreadyLinked
 		}
 	}
 
@@ -42,19 +41,22 @@ func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (*dto.SendOT
 			"err", err,
 			"phoneNumber", phoneNumber,
 		)
-		return nil, err
+		return nil, ErrSendSMSOTP
 	}
 	if resp.Status != nil {
-		slog.Info("success to send sms otp code", "phoneNumber", resp.To, "status", *resp.Status)
+		slog.Info("success to send sms otp code",
+			"phoneNumber", resp.To,
+			"status", *resp.Status,
+		)
 	}
 	vid, err := gocql.RandomUUID()
 	if err != nil {
 		slog.Error("fail to make random uuid for verification id")
-		return nil, err
+		return nil, ErrInternalServer
 	}
 	err = s.repository.SavePhoneNumberByVerificationId(vid, *resp.To)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternalServer
 	}
 	res := dto.SendOTPResponse{VerificationId: vid.String()}
 	return &res, nil
@@ -69,12 +71,12 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 				"err", err,
 				"SessionId", *sessionId,
 			)
-			return nil, "", err
+			return nil, "", ErrVerifySMSOTP
 		}
 
 		email, err = s.repository.FindEmailBySessionId(sid)
 		if err != nil {
-			return nil, "", err
+			return nil, "", ErrVerifySMSOTP
 		}
 	}
 
@@ -84,10 +86,11 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 			"err", err,
 			"id", verificationId,
 		)
+		return nil, "", ErrVerifySMSOTP
 	}
 	phoneNumber, err := s.repository.FindPhoneNumberByVerificationId(vid)
 	if err != nil {
-		return nil, "", err
+		return nil, "", ErrVerifySMSOTP
 	}
 
 	if sessionId != nil {
@@ -96,10 +99,10 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 			err = nil
 		}
 		if err != nil {
-			return nil, "", err
+			return nil, "", ErrVerifySMSOTP
 		}
 		if e != "" {
-			return nil, "", errors.New("this phone number already linked with other account")
+			return nil, "", ErrVerifySMSOTP
 		}
 	}
 
@@ -111,12 +114,14 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 
 	resp, err := s.twilioClient.VerifyV2.CreateVerificationCheck(serviceSid, params)
 	if err != nil {
-		slog.Error("fail to verify phone number otp", "err", err)
-		return nil, "", err
+		slog.Error("fail to verify phone number otp",
+			"err", err,
+		)
+		return nil, "", ErrVerifySMSOTP
 	}
 	if resp.Status == nil {
 		slog.Error("status is nil pointer")
-		return nil, "", fmt.Errorf("twilio response status is nil pointer: %v", verificationId)
+		return nil, "", ErrVerifySMSOTP
 	}
 	if *resp.Status != "approved" {
 		slog.Info("otp is not correct",
@@ -135,29 +140,32 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 			idv7, err := uuid.NewV7()
 			if err != nil {
 				slog.Error("fail to create uuid v7 for phone number sign in user")
-				return nil, "", err
+				return nil, "", ErrInternalServer
 			}
 			id = gocql.UUID(idv7)
 		}
 		if err != nil {
-			return nil, "", err
+			slog.Error("fail to find id by phone number except for not found",
+				"err", err,
+			)
+			return nil, "", ErrInternalServer
 		}
 		err = s.repository.SavePhoneNumberLoginInfo(phoneNumber, id)
 		if err != nil {
-			return nil, "", err
+			return nil, "", ErrInternalServer
 		}
 		jti, err := gocql.RandomUUID()
 		if err != nil {
 			slog.Error("fail to make random uuid for jti")
-			return nil, "", err
+			return nil, "", ErrInternalServer
 		}
 		at, rt, err := s.createLoginTokens(id.String(), jti.String(), constant.RoleUser)
 		if err != nil {
-			return nil, "", err
+			return nil, "", ErrInternalServer
 		}
 		err = s.repository.SaveRefreshTokenJTIById(id, jti)
 		if err != nil {
-			return nil, "", err
+			return nil, "", ErrInternalServer
 		}
 		r := dto.VerifySMSOTPResponse{
 			PhoneNumberVerified: true,
@@ -168,7 +176,10 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 
 	_, _, id, password, role, err := s.repository.FindLoginInfoByEmail(email)
 	if err != nil {
-		return nil, "", err
+		slog.Warn("fail to find login info by email which is selected by sessionId",
+			"err", err,
+		)
+		return nil, "", ErrInternalServer
 	}
 
 	oldAccountId, err := s.repository.FindIdByPhoneNumber(phoneNumber)
@@ -181,18 +192,21 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 		err = s.repository.LinkAndMarkVerifiedPhoneNumber(id, email, phoneNumber, role)
 	}
 	if err != nil {
-		return nil, "", err
+		return nil, "", ErrInternalServer
 	}
 
 	jti, err := gocql.RandomUUID()
 	if err != nil {
 		slog.Error("fail to make random uuid for jti")
-		return nil, "", err
+		return nil, "", ErrInternalServer
 	}
 	at, rt, err := s.createLoginTokens(id.String(), jti.String(), constant.RoleUser)
+	if err != nil {
+		return nil, "", ErrInternalServer
+	}
 	err = s.repository.SaveRefreshTokenJTIById(id, jti)
 	if err != nil {
-		return nil, "", err
+		return nil, "", ErrInternalServer
 	}
 	r := dto.VerifySMSOTPResponse{
 		PhoneNumberVerified: true,

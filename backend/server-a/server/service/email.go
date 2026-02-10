@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"log"
 	"log/slog"
 	"math/rand"
 	"net/smtp"
 	"os"
+	"regexp"
 	"server-a/server/dto"
 	"strconv"
 
@@ -17,10 +17,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *Service) CheckEmailUsable(ctx context.Context, email string) (bool, error) {
+func (s *Service) CheckEmailUsability(ctx context.Context, email string) (bool, error) {
+	if !isValidEmail(email) {
+		return false, ErrCheckEmail
+	}
+
 	isTaken, err := s.repository.EmailExists(ctx, email)
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 
 	if isTaken {
@@ -33,32 +37,47 @@ func (s *Service) CheckEmailUsable(ctx context.Context, email string) (bool, err
 }
 
 func (s *Service) CreateMemberByEmail(ctx context.Context, email, password string) (map[string]string, error) {
+	if !isValidEmail(email) {
+		return nil, ErrSignUpWithEmail
+	}
+
+	if len(password) < 8 {
+		slog.Info("not valid password",
+			"email", email,
+		)
+		return nil, ErrSignUpWithEmail
+	}
+
 	exist, err := s.repository.EmailExists(ctx, email)
 	if err != nil {
-		return nil, err
+		return nil, ErrSignUpWithEmail
 	}
 
 	if exist {
-		log.Printf("this email already exist")
-		return nil, errors.New("this email already exist")
+		slog.Info("this email already exist",
+			"email", email,
+		)
+		return nil, ErrSignUpWithEmail
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Printf("fail to hash password: %v", err)
-		return nil, err
+		slog.Error("fail to hash password",
+			"err", err,
+		)
+		return nil, ErrSignUpWithEmail
 	}
 
 	password = string(hashedPassword)
 	idv7, err := uuid.NewV7()
 	if err != nil {
 		slog.Error("fail to create uuid v7 for email password sign in user")
-		return nil, err
+		return nil, ErrInternalServer
 	}
 	id := gocql.UUID(idv7)
 	err = s.repository.SaveEmailLoginInfo(id, email, password)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternalServer
 	}
 
 	return map[string]string{"id": id.String()}, nil
@@ -70,7 +89,7 @@ func (s *Service) LoginWithEmail(email, password string) (*dto.LoginWithEmailRes
 	emailVerified, phoneNumberVerified, id, dbPassword, role, err :=
 		s.repository.FindLoginInfoByEmail(email)
 	if err != nil {
-		return nil, "", err
+		return nil, "", ErrLoginWithEmail
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
@@ -78,7 +97,7 @@ func (s *Service) LoginWithEmail(email, password string) (*dto.LoginWithEmailRes
 		slog.Info("invalid password",
 			"err", err,
 		)
-		return nil, "", err
+		return nil, "", ErrLoginWithEmail
 	}
 
 	if !emailVerified {
@@ -93,7 +112,7 @@ func (s *Service) LoginWithEmail(email, password string) (*dto.LoginWithEmailRes
 		sid, err := gocql.RandomUUID()
 		if err != nil {
 			slog.Error("fail to make random uuid for session id")
-			return nil, "", err
+			return nil, "", ErrInternalServer
 		}
 
 		err = s.repository.SaveEmailBySessionId(sid, email)
@@ -106,15 +125,15 @@ func (s *Service) LoginWithEmail(email, password string) (*dto.LoginWithEmailRes
 	jti, err := gocql.RandomUUID()
 	if err != nil {
 		slog.Error("fail to create random uuid for jti")
-		return nil, "", err
+		return nil, "", ErrInternalServer
 	}
 	at, rt, err := s.createLoginTokens(id.String(), jti.String(), role)
 	if err != nil {
-		return nil, "", err
+		return nil, "", ErrInternalServer
 	}
 	err = s.repository.SaveRefreshTokenJTIById(id, jti)
 	if err != nil {
-		return nil, "", err
+		return nil, "", ErrInternalServer
 	}
 	resp.EmailVerified = true
 	resp.PhoneNumberVerified = true
@@ -122,27 +141,28 @@ func (s *Service) LoginWithEmail(email, password string) (*dto.LoginWithEmailRes
 	return &resp, rt, nil
 }
 
-func (s *Service) SendEmailOTP(ctx context.Context, id string) (*dto.SendOTPResponse, error) {
+func (s *Service) SendEmailOTP(id string) (*dto.SendOTPResponse, error) {
 	uid, err := gocql.ParseUUID(id)
 	if err != nil {
 		slog.Error("fail to parse id",
 			"err", err,
 			"id", id)
-		return nil, err
+		//TODO: this type of unauthorized or hacking like error can be categorized in other error
+		return nil, ErrSendEmailOTP
 	}
 	email, err := s.repository.FindEmailById(uid)
 	if err != nil {
-		return nil, err
+		return nil, ErrSendEmailOTP
 	}
 	otp := strconv.Itoa(rand.Intn(900000) + 100000)
 	vid, err := gocql.RandomUUID()
 	if err != nil {
 		slog.Error("fail to make random uuid for verification id")
-		return nil, err
+		return nil, ErrInternalServer
 	}
 	err = s.repository.SaveEmailAndOtpByVerificationId(vid, email, otp)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternalServer
 	}
 	go func() {
 		from := os.Getenv("FROM_EMAIL")
@@ -164,7 +184,9 @@ func (s *Service) SendEmailOTP(ctx context.Context, id string) (*dto.SendOTPResp
 			[]byte(message),
 		)
 		if err != nil {
-			log.Printf("fail to send email: %v", err)
+			slog.Error("fail to send email OTP",
+				"err", err,
+			)
 		}
 	}()
 
@@ -175,11 +197,11 @@ func (s *Service) VerifyEmailOTP(otp, verificationId string) (*dto.VerifyEmailOT
 	vid, err := gocql.ParseUUID(verificationId)
 	if err != nil {
 		slog.Info("fail to parse uuid from verificationId in req", err)
-		return nil, err
+		return nil, ErrVerifyEmailOTP
 	}
 	email, dbOTP, err := s.repository.FindEmailAndOTPByVerificationId(vid)
 	if err != nil {
-		return nil, err
+		return nil, ErrVerifyEmailOTP
 	}
 	if otp != dbOTP {
 		log.Printf(
@@ -194,17 +216,17 @@ func (s *Service) VerifyEmailOTP(otp, verificationId string) (*dto.VerifyEmailOT
 
 	err = s.repository.MarkEmailVerified(email)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternalServer
 	}
 
 	sid, err := gocql.RandomUUID()
 	if err != nil {
 		slog.Error("fail to make random uuid for session id")
-		return nil, err
+		return nil, ErrInternalServer
 	}
 	err = s.repository.SaveEmailBySessionId(sid, email)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternalServer
 	}
 
 	resp := dto.VerifyEmailOTPResponse{
@@ -212,4 +234,10 @@ func (s *Service) VerifyEmailOTP(otp, verificationId string) (*dto.VerifyEmailOT
 		SessionId:     sid.String(),
 	}
 	return &resp, nil
+}
+
+var emailRegex = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
+
+func isValidEmail(email string) bool {
+	return emailRegex.MatchString(email)
 }

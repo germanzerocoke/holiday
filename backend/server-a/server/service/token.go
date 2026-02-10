@@ -1,9 +1,6 @@
 package service
 
 import (
-	"errors"
-	"fmt"
-	"log"
 	"log/slog"
 	"server-a/server/constant"
 	"time"
@@ -15,52 +12,59 @@ import (
 func (s *Service) GenerateAccessToken(refreshToken string) (map[string]string, error) {
 	rt, err := jwt.Parse(refreshToken, func(token *jwt.Token) (any, error) {
 		if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
-			return nil, fmt.Errorf("unexpected signing method: %s", token.Method.Alg())
+			slog.Info("unexpected signing method")
+			return nil, ErrGenerateToken
 		}
 		return s.secretKeyRT, nil
 	})
 	if err != nil {
-		log.Printf("fail to parse token: %v", err)
-		return nil, err
+		slog.Info("fail to parse token",
+			"err", err)
+		return nil, ErrGenerateToken
 	}
 	if !rt.Valid {
-		log.Printf("invalid token: %v", rt)
-		return nil, errors.New("invalid token")
+		slog.Info("invalid token",
+			"rt", rt)
+		return nil, ErrGenerateToken
 	}
 	exp, err := rt.Claims.GetExpirationTime()
 	if err != nil {
 		slog.Info("fail to get expiration time")
-		return nil, errors.New("invalid token")
+		return nil, ErrGenerateToken
 	}
 	if exp.Unix() < time.Now().Unix() {
 		slog.Info("stale token")
-		return nil, errors.New("invalid token")
+		return nil, ErrGenerateToken
 	}
-	id, err := rt.Claims.GetSubject()
+	rawId, err := rt.Claims.GetSubject()
 	if err != nil {
-		log.Printf("fail to get subject from claim: %v", err)
-		return nil, err
+		slog.Info("fail to get subject from claim",
+			"err", err,
+		)
+		return nil, ErrGenerateToken
 	}
-	uuid, err := gocql.ParseUUID(id)
+	id, err := gocql.ParseUUID(rawId)
 	if err != nil {
-		log.Printf("fail to parse gocql uuid from id: %v", err)
+		slog.Info("fail to parse gocql uuid from id",
+			"err", err)
+		return nil, ErrGenerateToken
 	}
-	jti, err := s.repository.FindRefreshTokenJTIById(uuid)
+	jti, err := s.repository.FindRefreshTokenJTIById(id)
 	if err != nil {
-		return nil, errors.New("invalid token")
+		return nil, ErrGenerateToken
 	}
 	if rt.Claims.(jwt.MapClaims)["jti"].(string) != jti.String() {
 		slog.Info("refresh token jti is not same with DB")
-		return nil, errors.New("invalid token")
+		return nil, ErrGenerateToken
 	}
 	role, ok := rt.Claims.(jwt.MapClaims)["role"].(string)
 	if !ok {
 		slog.Info("fail to get role")
-		return nil, errors.New("invalid token")
+		return nil, ErrGenerateToken
 	}
-	at, err := createToken(id, role, s.secretKeyAT, constant.AccessTokenTTL)
+	at, err := createToken(rawId, role, s.secretKeyAT, constant.AccessTokenTTL)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternalServer
 	}
 	resp := map[string]string{"accessToken": at}
 
@@ -97,7 +101,9 @@ func createToken(id, role string, secretKey []byte, ttl int64) (token string, er
 
 	token, err = jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(secretKey)
 	if err != nil {
-		log.Printf("fail to make token")
+		slog.Error("fail to make token",
+			"err", err,
+		)
 		return "", err
 	}
 	return token, nil
@@ -114,7 +120,9 @@ func createTokenWithJTI(id, jti, role string, secretKey []byte, ttl int64) (toke
 
 	token, err = jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(secretKey)
 	if err != nil {
-		log.Printf("fail to make token")
+		slog.Error("fail to make token with JTI",
+			"err", err,
+		)
 		return "", err
 	}
 	return token, nil

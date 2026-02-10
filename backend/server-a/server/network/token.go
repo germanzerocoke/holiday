@@ -18,7 +18,7 @@ func (n *Network) refreshToken(c *gin.Context) {
 	}
 	result, err := n.service.GenerateAccessToken(rt.Value)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, result)

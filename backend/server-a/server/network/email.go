@@ -27,7 +27,7 @@ func (n *Network) createMemberByEmail(c *gin.Context) {
 	}
 	result, err := n.service.CreateMemberByEmail(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -43,7 +43,7 @@ func (n *Network) loginWithEmail(c *gin.Context) {
 	}
 	result, rt, err := n.service.LoginWithEmail(req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 		return
 	}
 	if rt != "" {
@@ -67,9 +67,9 @@ func (n *Network) checkEmail(c *gin.Context) {
 		return
 	}
 	ctx := c.Request.Context()
-	ok, err := n.service.CheckEmailUsable(ctx, req.Email)
+	ok, err := n.service.CheckEmailUsability(ctx, req.Email)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, ok)
@@ -79,12 +79,12 @@ func (n *Network) sendEmailOTP(c *gin.Context) {
 	var req dto.SendEmailOTPRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusUnprocessableEntity, err.Error())
 		return
 	}
-	result, err := n.service.SendEmailOTP(c.Request.Context(), req.Id)
+	result, err := n.service.SendEmailOTP(req.Id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -99,7 +99,7 @@ func (n *Network) verifyEmailOTP(c *gin.Context) {
 	}
 	result, err := n.service.VerifyEmailOTP(req.OTP, req.VerificationId)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -110,7 +110,7 @@ func (n *Network) signInWithApple(c *gin.Context) {
 	ctx := c.Request.Context()
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusUnauthorized, err.Error())
 	}
 	responseBody, rt, err := n.service.SignInWithApple(
 		ctx,
@@ -120,7 +120,7 @@ func (n *Network) signInWithApple(c *gin.Context) {
 		req.Email,
 	)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, err.Error())
+		c.JSON(getStatusCode(err), err.Error())
 	}
 	if rt != "" {
 		c.SetCookie("refresh_token",
