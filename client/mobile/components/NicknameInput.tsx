@@ -1,29 +1,33 @@
-import { StyleSheet } from "react-native";
 import { Controller, useFormContext } from "react-hook-form";
 import InputField from "@/components/InputField";
+import { StyleSheet } from "react-native";
 
-export default function OTPInput() {
+export default function NicknameInput() {
   const { control } = useFormContext();
 
   return (
     <Controller
-      name="otp"
+      name="nickname"
       control={control}
       rules={{
         validate: (data: string) => {
-          if (data.length <= 0) {
-            return "Put your Code before Verify";
+          if (!data || data.trim().length <= 4) {
+            return "name should be more than 4 characters";
+          }
+          if (!/^[A-Za-z ]+$/.test(data)) {
+            return "use English letters only";
           }
         },
       }}
       render={({ field: { onChange, value }, fieldState: { error } }) => (
         <InputField
           style={styles.text}
+          customHeight={55}
+          variant="outlined"
           autoFocus
-          label=""
+          label="Your nickname"
           placeholder=""
           returnKeyType="done"
-          keyboardType="numeric"
           submitBehavior="blurAndSubmit"
           value={value}
           onChangeText={onChange}
@@ -36,6 +40,6 @@ export default function OTPInput() {
 
 const styles = StyleSheet.create({
   text: {
-    textAlign: "center",
+    fontSize: 24,
   },
 });

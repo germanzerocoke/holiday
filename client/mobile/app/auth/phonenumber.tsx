@@ -14,6 +14,7 @@ import Toast from "react-native-toast-message";
 import { useAuth } from "@/hooks/useAuth";
 import { router } from "expo-router";
 import { getSecureStore, saveSecureStore } from "@/util/secureStore";
+import hairlineWidth = StyleSheet.hairlineWidth;
 
 interface FormValue {
   countryCode: CountryCode;
@@ -110,6 +111,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.SAND_110,
+    borderTopWidth: hairlineWidth,
+    borderColor: colors.GRAY_700,
   },
   content: {
     flex: 1,

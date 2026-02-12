@@ -5,6 +5,7 @@ import { Link, router, useFocusEffect } from "expo-router";
 import { colors } from "@/constants";
 import AppleSignInButton from "@/components/AppleSignInButton";
 import { deleteSecureStore } from "@/util/secureStore";
+import hairlineWidth = StyleSheet.hairlineWidth;
 
 export default function AuthScreen() {
   useFocusEffect(() => {
@@ -39,6 +40,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.SAND_110,
+    borderTopWidth: hairlineWidth,
+    borderColor: colors.GRAY_700,
   },
   buttonContainer: {
     flex: 1,

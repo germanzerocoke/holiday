@@ -36,7 +36,7 @@ export default function AppleSignInButton() {
             router.push("/auth/phonenumber");
             return;
           }
-          router.push("/home");
+          router.replace("/home");
         },
       },
     );

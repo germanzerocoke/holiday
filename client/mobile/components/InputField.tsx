@@ -7,11 +7,13 @@ import {
   TextInputProps,
   View,
 } from "react-native";
+import hairlineWidth = StyleSheet.hairlineWidth;
 
 interface InputFieldProps extends TextInputProps {
   label?: string;
   variant?: "filled" | "standard" | "outlined";
   error?: string;
+  customHeight?: number;
   rightChild?: ReactNode;
 }
 
@@ -21,38 +23,40 @@ function InputField(
     variant = "filled",
     error = "",
     rightChild = null,
+    customHeight = 44,
     ...props
   }: InputFieldProps,
   ref?: ForwardedRef<TextInput>,
 ) {
   return (
     <View>
-      {label && <Text style={s.label}>{label}</Text>}
+      {label && <Text style={styles.label}>{label}</Text>}
       <View
         style={[
-          s.container,
-          s[variant],
-          props.multiline && s.multiline,
-          Boolean(error) && s.inputError,
+          styles.container,
+          styles[variant],
+          props.multiline && styles.multiline,
+          Boolean(error) && styles.inputError,
+          { height: customHeight },
         ]}
       >
         <TextInput
           ref={ref}
-          style={[s.input, s[`${variant}Text`]]}
           autoCapitalize="none"
           placeholderTextColor={colors.GRAY_400}
           spellCheck={false}
           autoCorrect={false}
           {...props}
+          style={[styles.input, styles[`${variant}Text`], props.style]}
         />
         {rightChild}
       </View>
-      {Boolean(error) && <Text style={s.error}>{error}</Text>}
+      {Boolean(error) && <Text style={styles.error}>{error}</Text>}
     </View>
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     color: colors.GRAY_700,
@@ -62,11 +66,9 @@ const s = StyleSheet.create({
     height: 44,
     borderRadius: 8,
     paddingHorizontal: 10,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
     flexDirection: "row",
-    alignSelf: "stretch",
-    width: "100%",
   },
   filled: {
     backgroundColor: colors.GRAY_100,
@@ -77,15 +79,15 @@ const s = StyleSheet.create({
     backgroundColor: colors.WHITE,
   },
   outlined: {
-    borderWidth: 1,
-    borderColor: colors.GREEN_600,
+    backgroundColor: colors.WHITE,
+    borderWidth: hairlineWidth,
+    borderColor: colors.GRAY_700,
   },
   standardText: {
     color: colors.BLACK,
   },
   outlinedText: {
     color: colors.BLACK,
-    fontWeight: "bold",
   },
   filledText: {},
   input: {

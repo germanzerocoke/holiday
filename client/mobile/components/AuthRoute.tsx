@@ -10,7 +10,7 @@ export default function AuthRoute({ children }: AuthRouteProps) {
   const { auth } = useAuth();
 
   useFocusEffect(() => {
-    !auth.id && router.replace("/auth");
+    !auth.id && router.replace("/profile/newcomer/nickname"); //router.replace("/auth");
     auth.id && router.replace("/home");
   });
   return <>{children}</>;

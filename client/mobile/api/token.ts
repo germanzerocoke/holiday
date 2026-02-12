@@ -3,8 +3,8 @@ import { axiosInstance } from "@/api/axios";
 
 async function refreshAccessToken() {
   try {
-    const res = await axiosInstance.post("/auth/refresh-token");
-    return res.data;
+    const { data } = await axiosInstance.post("/auth/refresh-token");
+    return data;
   } catch (err: any) {
     const message =
       err.response?.data?.message || "Failed to refresh access token";

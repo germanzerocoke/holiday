@@ -1,7 +1,6 @@
-import {Text} from 'react-native';
-import {SafeAreaView} from "react-native-safe-area-context";
+import { Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AuthRoute from "@/components/AuthRoute";
-
 
 export default function InitScreen() {
   return (
