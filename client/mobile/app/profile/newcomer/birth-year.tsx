@@ -3,48 +3,43 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/constants";
 import FixedBottomCTA from "@/components/FixedBottomCTA";
 import { FormProvider, useForm } from "react-hook-form";
-import NicknameInput from "@/components/NicknameInput";
+import BirthYearBox from "@/components/BirthYearBox";
 import { useNewcomer } from "@/hooks/useNewcomer";
 import { router } from "expo-router";
 
 interface FormValue {
-  nickname: string;
+  birthYear: number;
 }
 
-export default function NicknameScreen() {
-  const nicknameForm = useForm<FormValue>({
-    defaultValues: {
-      nickname: "",
-    },
+export default function BirthYearScreen() {
+  const birthYearForm = useForm<FormValue>({
+    defaultValues: { birthYear: 2000 },
   });
-  const { setNicknameMutation } = useNewcomer();
+  const { setBirthYearMutation } = useNewcomer();
 
   const onSubmit = async (formValue: FormValue) => {
-    const { nickname } = formValue;
+    const { birthYear } = formValue;
 
-    setNicknameMutation.mutate(
-      { nickname },
+    setBirthYearMutation.mutate(
+      { birthYear },
       {
         onSuccess: () => {
-          router.push("/profile/newcomer/birth-year");
+          router.push("/profile/newcomer/ethnicity");
         },
       },
     );
   };
 
   return (
-    <FormProvider {...nicknameForm}>
+    <FormProvider {...birthYearForm}>
       <SafeAreaView style={styles.container}>
-        <Text style={styles.guideLine}>
-          We strongly recommend to set a nickname which is convenient to be
-          called by others
-        </Text>
+        <Text style={styles.guideLine}>When were you born?</Text>
         <View style={styles.content}>
-          <NicknameInput />
+          <BirthYearBox />
         </View>
         <FixedBottomCTA
-          label="Set nickname"
-          onPress={nicknameForm.handleSubmit(onSubmit)}
+          label="Set birth year"
+          onPress={birthYearForm.handleSubmit(onSubmit)}
         />
       </SafeAreaView>
     </FormProvider>

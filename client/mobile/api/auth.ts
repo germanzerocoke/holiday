@@ -1,63 +1,63 @@
 import { axiosInstance } from "@/api/axios";
 import {
-  loginWithEmailResponse,
-  signInWithEmailRequest,
-  sendSMSOTPRequest,
-  signInWithAppleRequest,
-  signInWithAppleResponse,
-  verifyEmailOTPRequest,
-  verifyEmailOTPResponse,
-  verifySMSOTPRequest,
-  verifySMSOTPResponse,
+  LoginWithEmailResponse,
+  SignInWithAppleRequest,
+  SignInWithAppleResponse,
+  SignInWithEmailRequest,
+  SendSMSOTPRequest,
+  VerifyEmailOTPRequest,
+  VerifyEmailOTPResponse,
+  VerifySMSOTPRequest,
+  VerifySMSOTPResponse,
 } from "@/types/auth";
 
 export async function signUpWithEmail(
-  body: signInWithEmailRequest,
-): Promise<string> {
+  body: SignInWithEmailRequest,
+): Promise<{ id: string }> {
   console.log("post email sign up");
   const { data } = await axiosInstance.post("/auth/email/create", body);
   return data;
 }
 
 export async function loginInWithEmail(
-  body: signInWithEmailRequest,
-): Promise<loginWithEmailResponse> {
+  body: SignInWithEmailRequest,
+): Promise<LoginWithEmailResponse> {
   const { data } = await axiosInstance.post("/auth/email/login", body);
   console.log(data);
   return data;
 }
 
-export async function requestEmailOTP(
-  id: string,
-): Promise<{ verificationId: string }> {
-  const { data } = await axiosInstance.post("/auth/email/otp/send", { id });
+export async function requestEmailOTP(body: {
+  id: string;
+}): Promise<{ verificationId: string }> {
+  const { data } = await axiosInstance.post("/auth/email/otp/send", body);
   return data;
 }
 
 export async function requestSMSOTP(
-  body: sendSMSOTPRequest,
+  body: SendSMSOTPRequest,
 ): Promise<{ verificationId: string }> {
   const { data } = await axiosInstance.post("/auth/sms/otp/send", body);
   return data;
 }
 
 export async function verifyEmailOTP(
-  body: verifyEmailOTPRequest,
-): Promise<verifyEmailOTPResponse> {
+  body: VerifyEmailOTPRequest,
+): Promise<VerifyEmailOTPResponse> {
   const { data } = await axiosInstance.post("/auth/email/otp/verify", body);
   return data;
 }
 
 export async function verifySMSOTP(
-  body: verifySMSOTPRequest,
-): Promise<verifySMSOTPResponse> {
+  body: VerifySMSOTPRequest,
+): Promise<VerifySMSOTPResponse> {
   const { data } = await axiosInstance.post("/auth/sms/otp/verify", body);
   return data;
 }
 
 export async function signInWithApple(
-  body: signInWithAppleRequest,
-): Promise<signInWithAppleResponse> {
+  body: SignInWithAppleRequest,
+): Promise<SignInWithAppleResponse> {
   const { data } = await axiosInstance.post("/auth/email/apple", body);
   return data;
 }

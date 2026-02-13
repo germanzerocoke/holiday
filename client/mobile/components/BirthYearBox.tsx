@@ -8,44 +8,26 @@ import {
   View,
 } from "react-native";
 import { Controller, useFormContext } from "react-hook-form";
-import { CountryCode, getCountryCallingCode } from "libphonenumber-js";
 import { colors } from "@/constants";
 
-type CountryItem = {
-  cca2: string;
-  name: string;
-  label: string;
+type YearItem = {
+  year: number;
 };
 
-function buildCountryItems(): CountryItem[] {
-  const countries = require("i18n-iso-countries");
-  countries.registerLocale(require("i18n-iso-countries/langs/en.json"));
+function buildYearItems(): YearItem[] {
+  const items: YearItem[] = [];
 
-  const names = countries.getNames("en", { select: "official" });
-  delete names["AQ"];
-  delete names["BV"];
-  delete names["GS"];
-  delete names["HM"];
-  delete names["TF"];
-  delete names["UM"];
-  delete names["PN"];
-
-  const items: CountryItem[] = [];
-
-  for (const [cca2, name] of Object.entries<string>(names)) {
-    const callingCode = getCountryCallingCode(cca2 as CountryCode);
-    const label = `+${callingCode}`;
-    items.push({ cca2, name, label });
+  for (let year = 1900; year <= 2100; year++) {
+    items.push({ year });
   }
 
-  items.sort((a, b) => a.name.localeCompare(b.name));
   return items;
 }
 
-export default function CountryCodeBox() {
+export default function BirthYearBox() {
   const { control } = useFormContext();
   const [modalVisible, setModalVisible] = useState(false);
-  const [allCountries] = useState<CountryItem[]>(() => buildCountryItems());
+  const [allYears] = useState<YearItem[]>(() => buildYearItems());
 
   const openModal = () => {
     setModalVisible(true);
@@ -57,11 +39,11 @@ export default function CountryCodeBox() {
 
   return (
     <Controller
-      name="countryCode"
+      name="birthYear"
       control={control}
       render={({ field: { onChange, value } }) => {
-        const selected = allCountries.find((c) => c.cca2 === value);
-        const display = selected?.label ?? "+82";
+        const selected = allYears.find((item) => item.year === value);
+        const display = selected?.year ?? 2000;
         return (
           <>
             <Pressable onPress={openModal} style={styles.box}>
@@ -82,20 +64,17 @@ export default function CountryCodeBox() {
                 <View style={styles.handle} />
 
                 <ScrollView>
-                  {allCountries.map((c, index) => (
+                  {allYears.map((item, index) => (
                     <Pressable
                       key={index}
                       style={styles.row}
                       onPress={() => {
-                        onChange(c.cca2);
+                        onChange(item.year);
                         closeModal();
                       }}
                     >
-                      <Text style={styles.countryName} numberOfLines={1}>
-                        {c.name}
-                      </Text>
-                      <Text style={styles.countryCode} numberOfLines={1}>
-                        {c.label}
+                      <Text style={styles.year} numberOfLines={1}>
+                        {item.year}
                       </Text>
                     </Pressable>
                   ))}
@@ -159,13 +138,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 12,
   },
-  countryName: {
+  year: {
     flex: 1,
     fontSize: 16,
     color: colors.BLACK,
-  },
-  countryCode: {
-    fontSize: 14,
-    color: colors.GRAY_700,
   },
 });

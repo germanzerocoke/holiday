@@ -8,7 +8,6 @@ import { router } from "expo-router";
 import { getSecureStore } from "@/util/secureStore";
 import Toast from "react-native-toast-message";
 import OTPInput from "@/components/OTPInput";
-import hairlineWidth = StyleSheet.hairlineWidth;
 
 interface FormValue {
   otp: string;
@@ -61,7 +60,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.SAND_110,
-    borderTopWidth: hairlineWidth,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: colors.GRAY_700,
   },
   content: {

@@ -3,38 +3,38 @@ export interface Token {
   refreshToken: string;
 }
 
-export interface signInWithEmailRequest {
+export interface SignInWithEmailRequest {
   email: string;
   password: string;
 }
 
-export interface verifyEmailOTPRequest {
+export interface VerifyEmailOTPRequest {
   otp: string;
   verificationId: string;
 }
 
-export interface verifyEmailOTPResponse {
+export interface VerifyEmailOTPResponse {
   emailVerified: boolean;
   sessionId?: string;
 }
 
-export interface sendSMSOTPRequest {
+export interface SendSMSOTPRequest {
   phoneNumber: string;
   sessionId: string | null;
 }
 
-export interface verifySMSOTPRequest {
+export interface VerifySMSOTPRequest {
   otp: string;
   verificationId: string;
   sessionId: string | null;
 }
 
-export interface verifySMSOTPResponse {
+export interface VerifySMSOTPResponse {
   phoneNumberVerified: boolean;
   accessToken?: string;
 }
 
-export interface loginWithEmailResponse {
+export interface LoginWithEmailResponse {
   emailVerified: boolean;
   phoneNumberVerified: boolean;
   id: string;
@@ -42,14 +42,14 @@ export interface loginWithEmailResponse {
   accessToken?: string;
 }
 
-export interface signInWithAppleRequest {
+export interface SignInWithAppleRequest {
   user: string;
   email: string | null;
   identityToken: string;
   nonce: string;
 }
 
-export interface signInWithAppleResponse {
+export interface SignInWithAppleResponse {
   phoneNumberVerified: boolean;
   sessionId?: string;
   accessToken?: string;

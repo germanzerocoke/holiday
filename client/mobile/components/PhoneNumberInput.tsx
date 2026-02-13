@@ -22,7 +22,6 @@ export default function PhoneNumberInput(props: PhoneNumberInputProps) {
       <Controller
         name="phoneNumber"
         control={control}
-        defaultValue=""
         rules={{
           validate: (data: string) => {
             if (data.length <= 0) {

@@ -26,7 +26,7 @@ function useSignupWithEmail() {
   return useMutation({
     mutationFn: signUpWithEmail,
     onSuccess: async (data) => {
-      const { verificationId } = await requestEmailOTP(data);
+      const { verificationId } = await requestEmailOTP({ id: data.id });
       saveSecureStore("verificationId", verificationId);
       console.log("success to save verification Id");
     },
@@ -44,7 +44,7 @@ function useLoginWithEmail() {
     mutationFn: loginInWithEmail,
     onSuccess: async (data) => {
       if (!data.emailVerified) {
-        const { verificationId } = await requestEmailOTP(data.id);
+        const { verificationId } = await requestEmailOTP({ id: data.id });
         console.log(verificationId);
         saveSecureStore("verificationId", verificationId);
         const v = await getSecureStore("verificationId");

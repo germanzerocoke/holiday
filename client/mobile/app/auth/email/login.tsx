@@ -6,7 +6,6 @@ import PasswordInput from "@/components/PasswordInput";
 import { useAuth } from "@/hooks/useAuth";
 import { colors } from "@/constants";
 import { router } from "expo-router";
-import hairlineWidth = StyleSheet.hairlineWidth;
 
 interface FormValue {
   email: string;
@@ -41,7 +40,7 @@ export default function LoginScreen() {
             return;
           }
           if (!data.phoneNumberVerified) {
-            router.replace("/auth/phonenumber");
+            router.replace("/auth/phone-number");
             return;
           }
           if (data.accessToken) {
@@ -71,7 +70,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.SAND_110,
-    borderTopWidth: hairlineWidth,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: colors.GRAY_700,
   },
   content: {

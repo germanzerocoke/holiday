@@ -7,7 +7,6 @@ import PasswordConfirmInput from "@/components/PasswordConfirmInput";
 import { useAuth } from "@/hooks/useAuth";
 import { colors } from "@/constants";
 import { router } from "expo-router";
-import hairlineWidth = StyleSheet.hairlineWidth;
 
 interface FormValue {
   email: string;
@@ -60,7 +59,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.SAND_110,
-    borderTopWidth: hairlineWidth,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: colors.GRAY_700,
   },
   content: {

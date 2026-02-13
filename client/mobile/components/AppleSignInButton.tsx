@@ -33,7 +33,7 @@ export default function AppleSignInButton() {
       {
         onSuccess: async (data) => {
           if (!data.phoneNumberVerified) {
-            router.push("/auth/phonenumber");
+            router.push("/auth/phone-number");
             return;
           }
           router.replace("/home");

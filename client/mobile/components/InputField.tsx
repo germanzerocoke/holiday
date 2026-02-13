@@ -7,7 +7,6 @@ import {
   TextInputProps,
   View,
 } from "react-native";
-import hairlineWidth = StyleSheet.hairlineWidth;
 
 interface InputFieldProps extends TextInputProps {
   label?: string;
@@ -80,7 +79,7 @@ const styles = StyleSheet.create({
   },
   outlined: {
     backgroundColor: colors.WHITE,
-    borderWidth: hairlineWidth,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.GRAY_700,
   },
   standardText: {
