@@ -12,7 +12,6 @@ func emailRouter(n *Network) {
 	n.Router(POST, "/email/create", n.createMemberByEmail)
 	n.Router(POST, "/email/login", n.loginWithEmail)
 	n.Router(GET, "/email/check", n.checkEmail)
-	n.Router(POST, "/email/otp/send", n.sendEmailOTP)
 	n.Router(POST, "/email/otp/verify", n.verifyEmailOTP)
 	n.Router(POST, "/email/apple", n.signInWithApple)
 }
@@ -73,21 +72,6 @@ func (n *Network) checkEmail(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, ok)
-}
-
-func (n *Network) sendEmailOTP(c *gin.Context) {
-	var req dto.SendEmailOTPRequest
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err.Error())
-		return
-	}
-	result, err := n.service.SendEmailOTP(req.Id)
-	if err != nil {
-		c.JSON(getStatusCode(err), err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, result)
 }
 
 func (n *Network) verifyEmailOTP(c *gin.Context) {

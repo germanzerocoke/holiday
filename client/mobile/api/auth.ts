@@ -13,7 +13,7 @@ import {
 
 export async function signUpWithEmail(
   body: SignInWithEmailRequest,
-): Promise<{ id: string }> {
+): Promise<{ verificationId: string }> {
   console.log("post email sign up");
   const { data } = await axiosInstance.post("/auth/email/create", body);
   return data;

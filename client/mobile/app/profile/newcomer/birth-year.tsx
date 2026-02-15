@@ -33,7 +33,9 @@ export default function BirthYearScreen() {
   return (
     <FormProvider {...birthYearForm}>
       <SafeAreaView style={styles.container}>
-        <Text style={styles.guideLine}>When were you born?</Text>
+        <Text style={styles.guideLine}>
+          When were you born? This is non-modifiable
+        </Text>
         <View style={styles.content}>
           <BirthYearBox />
         </View>

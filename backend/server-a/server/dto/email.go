@@ -11,13 +11,9 @@ type SignInWithEmailRequest struct {
 type LoginWithEmailResponse struct {
 	PhoneNumberVerified bool   `json:"phoneNumberVerified"`
 	EmailVerified       bool   `json:"emailVerified"`
-	Id                  string `json:"id"`
+	VerificationId      string `json:"verificationId"`
 	SessionId           string `json:"sessionId"`
 	AccessToken         string `json:"accessToken"`
-}
-
-type SendEmailOTPRequest struct {
-	Id string `json:"id"`
 }
 
 type VerifyEmailOTPRequest struct {

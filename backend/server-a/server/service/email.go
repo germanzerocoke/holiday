@@ -80,7 +80,12 @@ func (s *Service) CreateMemberByEmail(ctx context.Context, email, password strin
 		return nil, ErrInternalServer
 	}
 
-	return map[string]string{"id": id.String()}, nil
+	vid, err := s.sendEmailOTP(email)
+	if err != nil {
+		return nil, ErrInternalServer
+	}
+
+	return map[string]string{"verificationId": vid}, nil
 }
 
 func (s *Service) LoginWithEmail(email, password string) (*dto.LoginWithEmailResponse, string /*refreshToken*/, error) {
@@ -103,7 +108,10 @@ func (s *Service) LoginWithEmail(email, password string) (*dto.LoginWithEmailRes
 	if !emailVerified {
 		resp.EmailVerified = false
 		resp.PhoneNumberVerified = false
-		resp.Id = id.String()
+		resp.VerificationId, err = s.sendEmailOTP(email)
+		if err != nil {
+			return nil, "", ErrInternalServer
+		}
 
 		return &resp, "", nil
 	}
@@ -141,28 +149,18 @@ func (s *Service) LoginWithEmail(email, password string) (*dto.LoginWithEmailRes
 	return &resp, rt, nil
 }
 
-func (s *Service) SendEmailOTP(id string) (*dto.SendOTPResponse, error) {
-	uid, err := gocql.ParseUUID(id)
-	if err != nil {
-		slog.Error("fail to parse id",
-			"err", err,
-			"id", id)
-		//TODO: this type of unauthorized or hacking like error can be categorized in other error
-		return nil, ErrSendEmailOTP
-	}
-	email, err := s.repository.FindEmailById(uid)
-	if err != nil {
-		return nil, ErrSendEmailOTP
-	}
+func (s *Service) sendEmailOTP(email string) (string, error) {
 	otp := strconv.Itoa(rand.Intn(900000) + 100000)
 	vid, err := gocql.RandomUUID()
 	if err != nil {
-		slog.Error("fail to make random uuid for verification id")
-		return nil, ErrInternalServer
+		slog.Error("fail to make random uuid for verification id",
+			"err", err,
+		)
+		return "", ErrInternalServer
 	}
 	err = s.repository.SaveEmailAndOtpByVerificationId(vid, email, otp)
 	if err != nil {
-		return nil, ErrInternalServer
+		return "", ErrInternalServer
 	}
 	go func() {
 		from := os.Getenv("FROM_EMAIL")
@@ -190,7 +188,7 @@ func (s *Service) SendEmailOTP(id string) (*dto.SendOTPResponse, error) {
 		}
 	}()
 
-	return &dto.SendOTPResponse{VerificationId: vid.String()}, nil
+	return vid.String(), nil
 }
 
 func (s *Service) VerifyEmailOTP(otp, verificationId string) (*dto.VerifyEmailOTPResponse, error) {
