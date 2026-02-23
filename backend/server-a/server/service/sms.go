@@ -14,7 +14,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (*dto.SendOTPResponse, error) {
+func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (map[string]string, error) {
 	if sessionId != nil {
 		email, err := s.repository.FindEmailByPhoneNumber(phoneNumber)
 		if errors.Is(err, gocql.ErrNotFound) {
@@ -58,8 +58,8 @@ func (s *Service) SendSMSOTP(sessionId *string, phoneNumber string) (*dto.SendOT
 	if err != nil {
 		return nil, ErrInternalServer
 	}
-	res := dto.SendOTPResponse{VerificationId: vid.String()}
-	return &res, nil
+	res := map[string]string{"verificationId": vid.String()}
+	return res, nil
 }
 
 func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*dto.VerifySMSOTPResponse, string /*refreshToken*/, error) {

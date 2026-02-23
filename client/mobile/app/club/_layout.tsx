@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-export default function ProfileLayout() {
+export default function ClubLayout() {
   return (
     <Stack>
       <Stack.Screen

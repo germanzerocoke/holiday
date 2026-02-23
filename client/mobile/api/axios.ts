@@ -7,6 +7,7 @@ const baseUrl = {
 };
 
 const axiosInstance = axios.create({
+  adapter: "fetch",
   baseURL: Platform.OS === "ios" ? baseUrl.ios : baseUrl.android,
   withCredentials: true,
   headers: {

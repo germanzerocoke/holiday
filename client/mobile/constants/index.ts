@@ -1,4 +1,4 @@
-const colors = {
+export const colors = {
   WHITE: "#FFF",
   BLACK: "#000",
   GRAY_50: "#FCFCFC",
@@ -23,13 +23,14 @@ const colors = {
   SAND_300: "#FFE082",
 };
 
-const queryKey = {
+export const queryKey = {
   AUTH: "auth",
+  CLUB: "club",
   GET_ME: "getMe",
+  GET_ONLINE_CLUBS: "getOnlineClubs",
+  GET_ONLINE_CLUB: "getOnlineClub",
 };
 
-const time = {
+export const time = {
   TEN_MINUTES: 10 * 60 * 1000,
 };
-
-export { colors, queryKey, time };
