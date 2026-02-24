@@ -5,6 +5,15 @@ import (
 	"online/server/service"
 )
 
+type HTTPMethod int
+
+const (
+	GET HTTPMethod = iota
+	POST
+	DELETE
+	PUT
+)
+
 type Controller struct {
 	service *service.Service
 	mux     *http.ServeMux
@@ -14,6 +23,26 @@ func NewController(s *service.Service, m *http.ServeMux) *Controller {
 
 	c := &Controller{
 		service: s,
+		mux:     m,
 	}
+	clubRouter(c)
 	return c
+}
+
+func (c *Controller) Router(httpMethod HTTPMethod, path string, handler http.HandlerFunc) {
+	m := c.mux
+
+	switch httpMethod {
+	case GET:
+		m.HandleFunc("GET "+path, handler)
+	case POST:
+		m.HandleFunc("POST "+path, handler)
+	case PUT:
+		m.HandleFunc("PUT "+path, handler)
+	case DELETE:
+		m.HandleFunc("DELETE "+path, handler)
+
+	default:
+		panic("This HTTP method is not supported")
+	}
 }
