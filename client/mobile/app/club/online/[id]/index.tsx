@@ -5,11 +5,16 @@ import { useGetOnlineClub } from "@/hooks/useClub";
 
 export default function OnlineClubDetailScreen() {
   const { id } = useLocalSearchParams();
-  const { data: club } = useGetOnlineClub(String(id));
+  const { data: club, isPending, isError } = useGetOnlineClub(String(id));
+
+  if (isPending || isError) {
+    return <></>;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>{club.title}</Text>
+        <Text style={styles.title}>{club?.title}</Text>
         <Text style={styles.description}>description</Text>
       </View>
     </View>

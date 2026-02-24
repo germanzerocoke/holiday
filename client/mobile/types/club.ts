@@ -5,6 +5,6 @@ export interface OnlineClub {
 
 export interface OnlineClubDetail {
   id: string;
-  leaderId: string;
   title: string;
+  leaderId: string;
 }

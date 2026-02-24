@@ -1,7 +1,7 @@
 import { axiosInstance } from "@/api/axios";
 import { OnlineClub, OnlineClubDetail } from "@/types/club";
 
-export async function getOnlineClubs(page = 1): Promise<OnlineClub[]> {
+export async function getOnlineClubs(page = 0): Promise<OnlineClub[]> {
   const { data } = await axiosInstance.get(`/club/online/list?page=${page}`);
   return data;
 }

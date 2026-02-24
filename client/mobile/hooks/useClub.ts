@@ -6,7 +6,7 @@ export function useGetInfiniteOnlineClubs() {
   return useInfiniteQuery({
     queryFn: ({ pageParam }) => getOnlineClubs(pageParam),
     queryKey: [queryKey.CLUB, queryKey.GET_ONLINE_CLUBS],
-    initialPageParam: 1,
+    initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const lastPost = lastPage[lastPage.length - 1];
       return lastPost ? allPages.length + 1 : undefined;
