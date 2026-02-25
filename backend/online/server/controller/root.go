@@ -46,3 +46,7 @@ func (c *Controller) Router(httpMethod HTTPMethod, path string, handler http.Han
 		panic("This HTTP method is not supported")
 	}
 }
+
+func getStatusCode(err error) int {
+	return http.StatusBadRequest
+}
