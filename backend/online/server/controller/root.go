@@ -19,14 +19,14 @@ type Controller struct {
 	mux     *http.ServeMux
 }
 
-func NewController(s *service.Service, m *http.ServeMux) *Controller {
+func SetController(s *service.Service, m *http.ServeMux) {
 
 	c := &Controller{
 		service: s,
 		mux:     m,
 	}
+
 	clubRouter(c)
-	return c
 }
 
 func (c *Controller) Router(httpMethod HTTPMethod, path string, handler http.HandlerFunc) {

@@ -12,5 +12,5 @@ func NewServer(mux *http.ServeMux) {
 
 	s := service.NewService(r)
 
-	c := controller.NewController(s, mux)
+	controller.SetController(s, mux)
 }
