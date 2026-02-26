@@ -1,6 +1,8 @@
 package service
 
-import "online/server/repository"
+import (
+	"online/server/repository"
+)
 
 type Service struct {
 	repository *repository.Repository

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"io"
 	"log/slog"
 	"net/http"
 	"online/server/dto"
@@ -14,15 +13,8 @@ func clubRouter(c *Controller) {
 
 func (c *Controller) createClub(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateClubRequest
+
 	userId := r.Header.Get("X-User-Id")
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			slog.Error("fail to close request body",
-				"err", err,
-			)
-		}
-	}(r.Body)
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		slog.Info("incorrect body",
