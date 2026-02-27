@@ -20,7 +20,6 @@ type Club struct {
 	BlockedIds []bson.Binary `bson:"blocked_ids"`
 	//QNAs are club subset so it seemed good to embedding,
 	//but embedding make query writing difficult, so we will ref it
-	QNAIds     []bson.ObjectID `bson:"qna_ids"`
 	MeetingIds []bson.ObjectID `bson:"meeting_ids"`
 }
 
@@ -35,8 +34,10 @@ type Meeting struct {
 	Length   time.Duration `bson:"length"`
 	Done     bool          `bson:"done"`
 
-	ParticipantIds []bson.Binary `bson:"participant_ids"`
-	ClubId         bson.ObjectID `bson:"club_id"`
+	ClubId         bson.ObjectID   `bson:"club_id"`
+	ModId          bson.Binary     `bson:"mod_id"`
+	ParticipantIds []bson.Binary   `bson:"participant_ids"`
+	QNAIds         []bson.ObjectID `bson:"qna_ids"`
 
 	//AudioFileUrl string        `bson:"audio_file_url"`
 }
@@ -44,7 +45,12 @@ type Meeting struct {
 type QNA struct {
 	Id       bson.ObjectID `bson:"_id"`
 	Question string        `bson:"question"`
-	Answer   string        `bson:"answer"`
 
-	ClubId bson.ObjectID `bson:"club_id"`
+	MeetingId bson.ObjectID   `bson:"meeting_id"`
+	AnswerIds []bson.ObjectID `bson:"answer_ids"`
+}
+
+type Answer struct {
+	Id      bson.ObjectID `bson:"_id"`
+	Content string        `bson:"content"`
 }

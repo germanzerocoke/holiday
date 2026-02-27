@@ -4,18 +4,18 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"server-a/config"
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/google/uuid"
 )
 
 type KafkaProducer struct {
 	producer sarama.AsyncProducer
 }
 
-func NewKafkaProducer(cfg *config.Config) *KafkaProducer {
-	producer, err := createProducer(cfg)
+func NewKafkaProducer() *KafkaProducer {
+	producer, err := createProducer()
 	if err != nil {
 		slog.Error("fail to create producer",
 			"err", err,
@@ -28,9 +28,15 @@ func NewKafkaProducer(cfg *config.Config) *KafkaProducer {
 	return &kp
 }
 
-func createProducer(config *config.Config) (sarama.AsyncProducer, error) {
+func createProducer() (sarama.AsyncProducer, error) {
 	cfg := sarama.NewConfig()
-	cfg.ClientID = config.Kafka.ProducerClientId
+	id, err := uuid.NewV7()
+	if err != nil {
+		slog.Error("fail to create uuid for kafka producer client id")
+		return nil, err
+	}
+
+	cfg.ClientID = "auth.producer." + id.String()
 	//cfg.Net.SASL.Enable = true
 	//cfg.Net.SASL.Version = 1
 	//cfg.Net.SASL.Mechanism = sarama.SASLTypePlaintext

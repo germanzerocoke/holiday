@@ -134,10 +134,11 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 	}
 
 	if sessionId == nil {
+		var idv7 uuid.UUID
 		id, err := s.repository.FindIdByPhoneNumber(phoneNumber)
 		if errors.Is(err, gocql.ErrNotFound) {
 			err = nil
-			idv7, err := uuid.NewV7()
+			idv7, err = uuid.NewV7()
 			if err != nil {
 				slog.Error("fail to create uuid v7 for phone number sign in user")
 				return nil, "", ErrInternalServer
@@ -171,6 +172,14 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 			PhoneNumberVerified: true,
 			AccessToken:         at,
 		}
+		if idv7 != uuid.Nil {
+			err = s.kafkaProducer.PushMessage("auth.new_member_id", id.Bytes())
+			if err != nil {
+				//TODO: Retry logic with grpc or rest
+				return &r, rt, nil
+			}
+		}
+
 		return &r, rt, nil
 	}
 
@@ -211,6 +220,11 @@ func (s *Service) VerifySMSOTP(sessionId *string, otp, verificationId string) (*
 	r := dto.VerifySMSOTPResponse{
 		PhoneNumberVerified: true,
 		AccessToken:         at,
+	}
+	err = s.kafkaProducer.PushMessage("auth.new_member_id", id.Bytes())
+	if err != nil {
+		//TODO: Retry logic with grpc or rest
+		return &r, rt, nil
 	}
 	return &r, rt, nil
 }

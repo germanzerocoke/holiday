@@ -16,13 +16,13 @@ type Server struct {
 func NewServer(cfg *config.Config) *Server {
 	server := &Server{cfg}
 
-	kp := producer.NewKafkaProducer(cfg)
+	kp := producer.NewKafkaProducer()
 
 	logger.SetLogger(kp)
 
 	r := repository.NewRepository(cfg)
 
-	s := service.NewService(cfg, r)
+	s := service.NewService(cfg, r, kp)
 
 	n := network.NewNetwork(cfg, s)
 
