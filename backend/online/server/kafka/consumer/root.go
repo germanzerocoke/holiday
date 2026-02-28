@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log"
 	"log/slog"
@@ -149,15 +148,10 @@ func toggleConsumptionFlow(client sarama.ConsumerGroup, isPaused *bool) {
 
 func (ks *KafkaConsumer) distinguishMessage(message *sarama.ConsumerMessage) error {
 	if message.Topic == "auth.new_member_id" {
-		var id []byte
-		err := json.Unmarshal(message.Value, &id)
+		err := ks.service.SaveNewMemberId(message.Value)
 		if err != nil {
-			slog.Error("Fail to unmarshal new member id",
-				"err", err,
-				"message.Value", message.Value,
-			)
+			return err
 		}
-		err = ks.service.SaveNewMemberId(id)
 		return nil
 	}
 	return errors.New("this topic does not exist")
