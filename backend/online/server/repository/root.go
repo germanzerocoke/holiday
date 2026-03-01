@@ -14,7 +14,8 @@ import (
 )
 
 type Repository struct {
-	db *mongo.Database
+	client *mongo.Client
+	db     *mongo.Database
 }
 
 func NewRepository() *Repository {
@@ -30,7 +31,6 @@ func NewRepository() *Repository {
 		log.Panicf("fail to ping mongodb: %v", err)
 	}
 	slog.Info("success to connect mongodb")
-	db := client.Database("default")
-	r := &Repository{db}
+	r := &Repository{client, client.Database("db")}
 	return r
 }

@@ -26,7 +26,7 @@ func SetController(s *service.Service, m *http.ServeMux) {
 		mux:     m,
 	}
 
-	clubRouter(c)
+	conversationRouter(c)
 }
 
 func (c *Controller) Router(httpMethod HTTPMethod, path string, handler http.HandlerFunc) {

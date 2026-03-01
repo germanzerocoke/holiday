@@ -7,14 +7,14 @@ import (
 	"online/server/dto"
 )
 
-func clubRouter(c *Controller) {
-	c.Router(GET, "/club", c.createClub)
+func conversationRouter(c *Controller) {
+	c.Router(GET, "/conversation/create", c.createConversation)
 }
 
-func (c *Controller) createClub(w http.ResponseWriter, r *http.Request) {
-	var req dto.CreateClubRequest
+func (c *Controller) createConversation(w http.ResponseWriter, r *http.Request) {
+	var req dto.CreateConversationRequest
 
-	userId := r.Header.Get("X-User-Id")
+	memberId := r.Header.Get("X-User-Id")
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		slog.Info("incorrect body",
@@ -29,7 +29,20 @@ func (c *Controller) createClub(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	result, err := c.service.CreateClub(r.Context(), userId, req.Name, req.Description)
+	result, err := c.service.CreateConversation(
+		r.Context(),
+		memberId,
+		req.Novel,
+		req.ShortStory,
+		req.Poem,
+		req.Drama,
+		req.Film,
+		req.By,
+		req.Rule,
+		req.Capacity,
+		req.When,
+		req.Length,
+	)
 	if err != nil {
 		w.WriteHeader(getStatusCode(err))
 		_, err = w.Write([]byte(err.Error()))
