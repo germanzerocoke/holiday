@@ -8,7 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
+
+const Limit = 10
 
 func (r *Repository) SaveConversation(ctx context.Context, memberId uuid.UUID, conversationId bson.ObjectID, novel, shortStory, poem, drama, film, by, rule string, capacity int, when time.Time, length time.Duration) error {
 	newConversation := document.Conversation{
@@ -65,4 +68,33 @@ func (r *Repository) SaveConversation(ctx context.Context, memberId uuid.UUID, c
 	}
 
 	return nil
+}
+
+func (r *Repository) GetNextConversations(ctx context.Context, page int) ([]document.Conversation, error) {
+	filter := bson.M{
+		"when":    bson.M{"$gt": time.Now().Add(-9 * time.Hour)},
+		"expired": false,
+	}
+
+	opts := options.Find().
+		SetSort(bson.M{"when": 1}).
+		SetLimit(Limit).
+		SetSkip(int64((page - 1) * 5))
+
+	c, err := r.db.Collection("conversation").Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]document.Conversation, 0, Limit)
+	err = c.All(ctx, &items)
+	if err != nil {
+		return nil, err
+	}
+	err = c.Close(ctx)
+	if err != nil {
+		slog.Error("fail to close *Cursor",
+			"err", err)
+	}
+	return items, nil
 }

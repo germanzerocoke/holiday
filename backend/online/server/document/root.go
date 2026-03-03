@@ -12,9 +12,8 @@ type Member struct {
 	Id   bson.Binary `bson:"_id"`
 	Name string      `bson:"name"`
 
-	ModeratorConversationIds   []bson.ObjectID `bson:"m_c_ids"`
-	ParticipantConversationIds []bson.ObjectID `bson:"p_c_ids"`
-	ListenerConversationIds    []bson.ObjectID `bson:"l_c_ids"`
+	ModeratorConversationIds  []bson.ObjectID `bson:"m_c_ids"`
+	RegistrantConversationIds []bson.ObjectID `bson:"r_c_ids"`
 }
 
 type Conversation struct {
@@ -29,11 +28,10 @@ type Conversation struct {
 	Capacity   int           `bson:"capacity"`
 	When       time.Time     `bson:"when"`
 	Length     time.Duration `bson:"length"`
-	Done       bool          `bson:"done"`
+	Expired    bool          `bson:"expired"`
 
-	ModeratorIds   []bson.Binary `bson:"m_ids"`
-	ParticipantIds []bson.Binary `bson:"p_ids"`
-	ListenerIds    []bson.Binary `bson:"l_ids"`
+	ModeratorIds  []bson.Binary `bson:"m_ids"`
+	RegistrantIds []bson.Binary `bson:"r_ids"`
 }
 
 //type Org struct {

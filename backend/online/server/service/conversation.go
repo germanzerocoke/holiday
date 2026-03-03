@@ -1,8 +1,9 @@
 package service
 
 import (
+	"bytes"
 	"context"
-	"log/slog"
+	"online/server/dto"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,7 +12,7 @@ import (
 
 func (s *Service) CreateConversation(
 	ctx context.Context,
-	memberIdRaw,
+	memberId uuid.UUID,
 	novel,
 	shortStory,
 	poem,
@@ -21,26 +22,10 @@ func (s *Service) CreateConversation(
 	rule string,
 	capacity int,
 	when time.Time,
-	lengthRaw string,
+	length time.Duration,
 ) (map[string]string, error) {
-	memberId, err := uuid.Parse(memberIdRaw)
-	if err != nil {
-		slog.Error("fail to parse userId from X-User-Id header",
-			"err", err,
-			"memberIdRaw", memberIdRaw,
-		)
-		return nil, err
-	}
-	length, err := time.ParseDuration(lengthRaw)
-	if err != nil {
-		slog.Error("fail to parse duration from rawLength",
-			"err", err,
-			"rawLength", lengthRaw,
-		)
-		return nil, err
-	}
 	conversationId := bson.NewObjectID()
-	err = s.repository.SaveConversation(
+	err := s.repository.SaveConversation(
 		ctx,
 		memberId,
 		conversationId,
@@ -58,7 +43,47 @@ func (s *Service) CreateConversation(
 	if err != nil {
 		return nil, err
 	}
-
 	return map[string]string{"conversationId": conversationId.Hex()}, nil
+}
 
+func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page int) (resp []dto.ConversationFeedResponse, err error) {
+	items, err := s.repository.GetNextConversations(ctx, page)
+	if err != nil {
+		return nil, err
+	}
+	for _, item := range items {
+		var isModerator bool
+		for _, mId := range item.ModeratorIds {
+			if bytes.Equal(mId.Data, memberId[:]) {
+				isModerator = true
+			}
+		}
+		var isRegistrant bool
+		for _, pId := range item.RegistrantIds {
+			if bytes.Equal(pId.Data, memberId[:]) {
+				isRegistrant = true
+			}
+		}
+		var onAir bool
+		if time.Now().After(item.When.Add(-10 * time.Minute)) {
+			onAir = true
+		}
+
+		resp = append(resp, dto.ConversationFeedResponse{
+			Id:           item.Id.Hex(),
+			Novel:        item.Novel,
+			ShortStory:   item.ShortStory,
+			Poem:         item.Poem,
+			Drama:        item.Drama,
+			Film:         item.Film,
+			By:           item.By,
+			Rule:         item.Rule,
+			When:         item.When,
+			Length:       item.Length.String(),
+			OnAir:        onAir,
+			IsModerator:  isModerator,
+			IsRegistrant: isRegistrant,
+		})
+	}
+	return resp, nil
 }
