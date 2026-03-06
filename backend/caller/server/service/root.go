@@ -1,7 +1,7 @@
 package service
 
 import (
-	"caller/server/repository"
+	"backend/caller/server/repository"
 )
 
 type Service struct {

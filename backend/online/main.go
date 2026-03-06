@@ -3,7 +3,7 @@ package main
 import (
 	"log/slog"
 	"net/http"
-	"online/server"
+	"backend/online/server"
 	"os"
 )
 

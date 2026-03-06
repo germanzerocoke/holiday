@@ -1,8 +1,8 @@
 package service
 
 import (
-	"online/server/kafka/producer"
-	"online/server/repository"
+	"backend/online/server/kafka/producer"
+	"backend/online/server/repository"
 )
 
 type Service struct {

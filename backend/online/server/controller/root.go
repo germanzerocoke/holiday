@@ -2,7 +2,7 @@ package controller
 
 import (
 	"net/http"
-	"online/server/service"
+	"backend/online/server/service"
 
 	"github.com/coder/websocket"
 )

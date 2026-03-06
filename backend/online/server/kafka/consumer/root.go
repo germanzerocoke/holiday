@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 	"log/slog"
-	"online/server/service"
+	"backend/online/server/service"
 	"os"
 	"os/signal"
 	"sync"

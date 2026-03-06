@@ -1,12 +1,12 @@
 package server
 
 import (
+	"backend/online/server/controller"
+	"backend/online/server/kafka/consumer"
+	"backend/online/server/kafka/producer"
+	"backend/online/server/repository"
+	"backend/online/server/service"
 	"net/http"
-	"online/server/controller"
-	"online/server/kafka/consumer"
-	"online/server/kafka/producer"
-	"online/server/repository"
-	"online/server/service"
 )
 
 func NewServer(mux *http.ServeMux) {

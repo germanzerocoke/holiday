@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"online/server/dto"
+	"backend/online/server/dto"
 	"strconv"
 	"time"
 

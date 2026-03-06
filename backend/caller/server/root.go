@@ -1,9 +1,9 @@
 package server
 
 import (
-	"caller/server/kafka/consumer"
-	"caller/server/repository"
-	"caller/server/service"
+	"backend/caller/server/kafka/consumer"
+	"backend/caller/server/repository"
+	"backend/caller/server/service"
 )
 
 func NewServer() {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"net/http"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

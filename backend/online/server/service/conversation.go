@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"online/server/dto"
+	"backend/online/server/dto"
 	"time"
 
 	"github.com/google/uuid"

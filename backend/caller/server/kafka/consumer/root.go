@@ -1,8 +1,8 @@
 package consumer
 
 import (
-	"caller/server/dto"
-	"caller/server/service"
+	"backend/caller/server/dto"
+	"backend/caller/server/service"
 	"context"
 	"encoding/json"
 	"errors"
