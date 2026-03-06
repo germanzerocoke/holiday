@@ -4,19 +4,23 @@ import (
 	"net/http"
 	"online/server/controller"
 	"online/server/kafka/consumer"
+	"online/server/kafka/producer"
 	"online/server/repository"
 	"online/server/service"
 )
 
 func NewServer(mux *http.ServeMux) {
+
+	kp := producer.NewKafkaProducer()
+
 	r := repository.NewRepository()
 
-	s := service.NewService(r)
+	s := service.NewService(r, kp)
 
-	k := consumer.NewKafkaConsumer(s)
+	ks := consumer.NewKafkaConsumer(s)
 
 	go func() {
-		k.GetMessage([]string{"auth.new_member_id"})
+		ks.GetMessage([]string{"auth.new_member_id"})
 	}()
 
 	controller.SetController(s, mux)

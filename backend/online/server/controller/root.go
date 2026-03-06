@@ -3,6 +3,8 @@ package controller
 import (
 	"net/http"
 	"online/server/service"
+
+	"github.com/coder/websocket"
 )
 
 type HTTPMethod int
@@ -17,6 +19,7 @@ const (
 type Controller struct {
 	service *service.Service
 	mux     *http.ServeMux
+	room    map[string]map[*websocket.Conn]struct{}
 }
 
 func SetController(s *service.Service, m *http.ServeMux) {

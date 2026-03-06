@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -31,4 +32,16 @@ type ConversationFeedResponse struct {
 	OnAir        bool      `json:"onAir"`
 	IsModerator  bool      `json:"isModerator"`
 	IsRegistrant bool      `json:"isRegistrant"`
+}
+
+type ConversationSignalResponse struct {
+	MemberId string          `json:"memberId"`
+	Signal   json.RawMessage `json:"signal"`
+}
+
+type ConversationSignalMessage struct {
+	ServerIP       string          `json:"serverIP"`
+	ConversationId string          `json:"conversationId"`
+	MemberId       string          `json:"memberId"`
+	Signal         json.RawMessage `json:"signal"`
 }

@@ -3,6 +3,8 @@ package service
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"log/slog"
 	"online/server/dto"
 	"time"
 
@@ -86,4 +88,43 @@ func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page
 		})
 	}
 	return resp, nil
+}
+
+func (s *Service) AddServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
+	err := s.repository.AddServerIP(ctx, conversationId, ip)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) RemoveServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
+	err := s.repository.RemoveServerIP(ctx, conversationId, ip)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) PublishConversationSignal(ip string, conversationId string, memberId string, data []byte) error {
+	msg := dto.ConversationSignalMessage{
+		ServerIP:       ip,
+		ConversationId: conversationId,
+		MemberId:       memberId,
+		Signal:         data,
+	}
+
+	value, err := json.Marshal(msg)
+	if err != nil {
+		slog.Error("fail to marshal msg",
+			"err", err,
+			"msg", msg)
+		return err
+	}
+	err = s.kafkaProducer.PushMessage("conversation.signal", value)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

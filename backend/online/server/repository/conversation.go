@@ -98,3 +98,35 @@ func (r *Repository) GetNextConversations(ctx context.Context, page int) ([]docu
 	}
 	return items, nil
 }
+
+func (r *Repository) AddServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
+	update := bson.M{
+		"$addToSet": bson.M{
+			"s_ips": ip,
+		},
+	}
+	_, err := r.db.Collection("conversation").
+		UpdateOne(ctx, bson.M{"_id": conversationId}, update)
+	if err != nil {
+		slog.Error("fail to add ip to conversation doc's server ips",
+			"err", err)
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) RemoveServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
+	update := bson.M{
+		"$pull": bson.M{
+			"s_ips": ip,
+		},
+	}
+	_, err := r.db.Collection("conversation").
+		UpdateOne(ctx, bson.M{"_id": conversationId}, update)
+	if err != nil {
+		slog.Error("fail to remove ip to conversation doc's server ips",
+			"err", err)
+		return err
+	}
+	return nil
+}
