@@ -106,7 +106,7 @@ func (s *Service) RemoveServerIP(ctx context.Context, conversationId bson.Object
 	return nil
 }
 
-func (s *Service) PublishConversationSignal(ip string, conversationId string, memberId string, data []byte) error {
+func (s *Service) PublishConversationSignal(ip, conversationId, memberId string, data []byte) error {
 	msg := dto.ConversationSignalMessage{
 		ServerIP:       ip,
 		ConversationId: conversationId,

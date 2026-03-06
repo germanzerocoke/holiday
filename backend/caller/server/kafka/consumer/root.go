@@ -1,8 +1,10 @@
 package consumer
 
 import (
+	"caller/server/dto"
 	"caller/server/service"
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"log/slog"
@@ -149,10 +151,18 @@ func toggleConsumptionFlow(client sarama.ConsumerGroup, isPaused *bool) {
 }
 
 func (ks *KafkaConsumer) distinguishMessage(message *sarama.ConsumerMessage) error {
+	ctx := context.Background()
 	if message.Topic == "conversation.signal" {
 
-		//TODO: parsing and spread
-		err := ks.service.PropagateSignal(message.Value)
+		var msg dto.ConversationSignalMessage
+		err := json.Unmarshal(message.Value, &msg)
+		if err != nil {
+			slog.Error("fail to unmarshal message value",
+				"err", err,
+				"message.Value", message.Value)
+			return err
+		}
+		err = ks.service.PropagateSignal(ctx, msg.ServerIP, msg.ConversationId, msg.MemberId, msg.Signal)
 		if err != nil {
 			return err
 		}

@@ -83,6 +83,8 @@ func (r *Repository) GetNextConversations(ctx context.Context, page int) ([]docu
 
 	c, err := r.db.Collection("conversation").Find(ctx, filter, opts)
 	if err != nil {
+		slog.Error("fail to find next conversations page",
+			"err", err)
 		return nil, err
 	}
 
@@ -102,7 +104,7 @@ func (r *Repository) GetNextConversations(ctx context.Context, page int) ([]docu
 func (r *Repository) AddServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
 	update := bson.M{
 		"$addToSet": bson.M{
-			"ips": ip,
+			"s_ips": ip,
 		},
 	}
 	_, err := r.db.Collection("conversation").
@@ -118,7 +120,7 @@ func (r *Repository) AddServerIP(ctx context.Context, conversationId bson.Object
 func (r *Repository) RemoveServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
 	update := bson.M{
 		"$pull": bson.M{
-			"ips": ip,
+			"s_ips": ip,
 		},
 	}
 	_, err := r.db.Collection("conversation").

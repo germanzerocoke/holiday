@@ -32,7 +32,7 @@ type Conversation struct {
 
 	ModeratorIds  []bson.Binary `bson:"m_ids"`
 	RegistrantIds []bson.Binary `bson:"r_ids"`
-	IPs           []string      `bson:"ips"`
+	ServerIPs     []string      `bson:"s_ips"`
 }
 
 //type Org struct {
