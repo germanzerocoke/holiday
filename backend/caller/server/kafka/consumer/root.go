@@ -1,11 +1,11 @@
 package consumer
 
 import (
+	"caller/server/service"
 	"context"
 	"errors"
 	"log"
 	"log/slog"
-	"online/server/service"
 	"os"
 	"os/signal"
 	"sync"
@@ -149,8 +149,10 @@ func toggleConsumptionFlow(client sarama.ConsumerGroup, isPaused *bool) {
 }
 
 func (ks *KafkaConsumer) distinguishMessage(message *sarama.ConsumerMessage) error {
-	if message.Topic == "auth.new_member_id" {
-		err := ks.service.SaveNewMemberId(message.Value)
+	if message.Topic == "conversation.signal" {
+
+		//TODO: parsing and spread
+		err := ks.service.PropagateSignal(message.Value)
 		if err != nil {
 			return err
 		}

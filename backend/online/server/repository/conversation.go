@@ -102,7 +102,7 @@ func (r *Repository) GetNextConversations(ctx context.Context, page int) ([]docu
 func (r *Repository) AddServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
 	update := bson.M{
 		"$addToSet": bson.M{
-			"s_ips": ip,
+			"ips": ip,
 		},
 	}
 	_, err := r.db.Collection("conversation").
@@ -118,7 +118,7 @@ func (r *Repository) AddServerIP(ctx context.Context, conversationId bson.Object
 func (r *Repository) RemoveServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
 	update := bson.M{
 		"$pull": bson.M{
-			"s_ips": ip,
+			"ips": ip,
 		},
 	}
 	_, err := r.db.Collection("conversation").

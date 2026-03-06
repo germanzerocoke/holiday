@@ -231,7 +231,10 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		c.service.PublishConversationSignal(ip, conversationIdRaw, memberId, data)
+		err = c.service.PublishConversationSignal(ip, conversationIdRaw, memberId, data)
+		if err != nil {
+			return
+		}
 	}
 }
 
