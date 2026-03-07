@@ -101,30 +101,62 @@ func (r *Repository) GetNextConversations(ctx context.Context, page int) ([]docu
 	return items, nil
 }
 
-func (r *Repository) AddServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
-	update := bson.M{
-		"$addToSet": bson.M{
-			"s_ips": ip,
-		},
-	}
-	_, err := r.db.Collection("conversation").
-		UpdateOne(ctx, bson.M{"_id": conversationId}, update)
+func (r *Repository) GetParticipants(ctx context.Context, conversationId bson.ObjectID) ([]bson.Binary, error) {
+	opts := options.FindOne().SetProjection(bson.M{"p_ids": 1, "id": 0})
+
+	var d document.Conversation
+	err := r.db.Collection("conversation").FindOne(ctx, bson.M{"_id": conversationId}, opts).Decode(&d)
 	if err != nil {
-		slog.Error("fail to add ip to conversation doc's server ips",
+		slog.Error("fail to find p")
+	}
+	return d.ParticipantIds, nil
+}
+
+func (r *Repository) AddParticipant(ctx context.Context, conversationId bson.ObjectID, memberId uuid.UUID) error {
+	_, err := r.db.Collection("conversation").
+		UpdateOne(ctx, bson.M{"_id": conversationId},
+			bson.M{"$push": bson.M{"p_ids": bson.Binary{4, memberId[:]}}})
+	if err != nil {
+		slog.Error("fail to add participant member id to conversation",
+			"err", err,
+			"conversationId", conversationId,
+			"memberId", memberId)
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) RemoveParticipant(ctx context.Context, conversationId bson.ObjectID, memberId uuid.UUID) error {
+	_, err := r.db.Collection("conversation").
+		UpdateOne(ctx, bson.M{"_id": conversationId},
+			bson.M{"$pull": bson.M{"p_ids": bson.Binary{4, memberId[:]}}})
+	if err != nil {
+		slog.Error("fail to remove participant member id to conversation",
+			"err", err,
+			"conversationId", conversationId,
+			"memberId", memberId)
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) SetServerIP(ctx context.Context, memberId uuid.UUID, ip string) error {
+	_, err := r.db.Collection("conversation").
+		UpdateOne(ctx, bson.M{"_id": bson.Binary{Subtype: 4, Data: memberId[:]}},
+			bson.M{"$set": bson.M{"server_ip": ip}})
+	if err != nil {
+		slog.Error("fail to set ip to conversation doc's server ips",
 			"err", err)
 		return err
 	}
 	return nil
 }
 
-func (r *Repository) RemoveServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
-	update := bson.M{
-		"$pull": bson.M{
-			"s_ips": ip,
-		},
-	}
+func (r *Repository) RemoveServerIP(ctx context.Context, memberId uuid.UUID) error {
+
 	_, err := r.db.Collection("conversation").
-		UpdateOne(ctx, bson.M{"_id": conversationId}, update)
+		UpdateOne(ctx, bson.M{"_id": bson.Binary{Subtype: 4, Data: memberId[:]}},
+			bson.M{"$unset": bson.M{"server_ip": ""}})
 	if err != nil {
 		slog.Error("fail to remove ip to conversation doc's server ips",
 			"err", err)

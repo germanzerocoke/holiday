@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"net/http"
 	"backend/online/server/service"
+	"net/http"
 
 	"github.com/coder/websocket"
 )
@@ -17,9 +17,9 @@ const (
 )
 
 type Controller struct {
-	service *service.Service
-	mux     *http.ServeMux
-	room    map[string]map[*websocket.Conn]struct{}
+	service     *service.Service
+	mux         *http.ServeMux
+	connections map[string]*websocket.Conn
 }
 
 func SetController(s *service.Service, m *http.ServeMux) {

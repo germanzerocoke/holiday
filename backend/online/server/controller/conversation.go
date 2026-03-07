@@ -1,13 +1,13 @@
 package controller
 
 import (
+	"backend/online/server/dto"
 	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
 	"net"
 	"net/http"
-	"backend/online/server/dto"
 	"strconv"
 	"time"
 
@@ -149,54 +149,163 @@ func (c *Controller) getConversations(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
-	memberId := r.Header.Get("X-User-Id")
+	memberIdRaw := r.Header.Get("X-User-Id")
+	memberId, err := uuid.Parse(memberIdRaw)
+	if err != nil {
+		slog.Error("fail to parse member id from raw string",
+			"err", err,
+			"memberIdRaw", memberIdRaw)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, err = w.Write([]byte("incorrect header"))
+		if err != nil {
+			slog.Error("fail to write response body",
+				"err", err,
+			)
+		}
+		return
+	}
 	conversationIdRaw := r.URL.Query().Get("conversationId")
 	conversationId, err := bson.ObjectIDFromHex(conversationIdRaw)
 	if err != nil {
 		slog.Error("fail to parse conversation object id from raw string",
 			"conversationIdRaw", conversationIdRaw)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, err = w.Write([]byte("incorrect header"))
+		if err != nil {
+			slog.Error("fail to write response body",
+				"err", err,
+			)
+		}
 		return
 	}
+
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		//OriginPatterns:     []string{"example.com"},
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, err = w.Write([]byte("incorrect header"))
+		if err != nil {
+			slog.Error("fail to write response body",
+				"err", err,
+			)
+		}
 		slog.Info("fail to accept connection", err)
 		return
 	}
+	c.connections[memberIdRaw] = conn
 
-	ip, err := getPodIP()
+	ip, _ := getPodIP()
+
+	defer func() {
+		destroy := context.Background()
+		conn.Close(websocket.StatusNormalClosure, "")
+		delete(c.connections, memberIdRaw)
+		c.service.RemoveServerIP(destroy, memberId)
+		c.service.RemoveParticipant(destroy, conversationId, memberId)
+	}()
+
+	init := context.Background()
+
+	err = c.service.SetServerIP(init, memberId, ip)
 	if err != nil {
-		slog.Error("fail to get pod ip",
-			"err", err)
+		err = conn.Write(init, websocket.MessageText, []byte(err.Error()))
+		if err != nil {
+			slog.Error("fail to write payload",
+				"err", err,
+			)
+		}
+		return
+	}
+	pids, err := c.service.GetParticipants(init, conversationId)
+	if err != nil {
+		err = conn.Write(init, websocket.MessageText, []byte(err.Error()))
+		if err != nil {
+			slog.Error("fail to write payload",
+				"err", err,
+			)
+		}
+		return
+	}
+	resp := dto.ConversationSignalResponse{ParticipantIds: pids}
+	payload, err := json.Marshal(resp)
+	if err != nil {
+		slog.Error("fail to marshal")
+		err = conn.Write(init, websocket.MessageText, []byte("fail to get participants"))
+		if err != nil {
+			slog.Error("fail to write payload",
+				"err", err,
+			)
+		}
+		return
+	}
+	err = conn.Write(init, websocket.MessageText, payload)
+	if err != nil {
+		slog.Error("fail to write payload",
+			"err", err,
+		)
 		return
 	}
 
-	defer func() {
-		conn.Close(websocket.StatusNormalClosure, "")
-		delete(c.room[conversationIdRaw], conn)
-		if len(c.room[conversationIdRaw]) == 0 {
-			delete(c.room, conversationIdRaw)
-			c.service.RemoveServerIP(r.Context(), conversationId, ip)
-		}
-	}()
-
-	if c.room[conversationIdRaw] == nil {
-		c.room[conversationIdRaw] = make(map[*websocket.Conn]struct{})
-		err = c.service.AddServerIP(r.Context(), conversationId, ip)
+	err = c.service.AddParticipant(init, conversationId, memberId)
+	if err != nil {
+		err = conn.Write(init, websocket.MessageText, []byte(err.Error()))
 		if err != nil {
+			slog.Error("fail to write payload",
+				"err", err,
+			)
+		}
+		return
+	}
+	for _, pid := range pids {
+		resp = dto.ConversationSignalResponse{
+			FromId: memberIdRaw,
+		}
+		payload, err = json.Marshal(resp)
+		if err != nil {
+			slog.Error("fail to marshal")
+			err = conn.Write(init, websocket.MessageText, []byte("fail to get participants"))
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+			}
+			return
+		}
+		p, ok := c.connections[pid]
+		if ok {
+			err = p.Write(init, websocket.MessageText, payload)
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+				return
+			}
+			continue
+		}
+		err = c.service.PublishConversationSignal(memberIdRaw, pid, []byte{})
+		if err != nil {
+			err = conn.Write(init, websocket.MessageText, []byte("fail to publish"))
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+			}
 			return
 		}
 	}
-
-	c.room[conversationIdRaw][conn] = struct{}{}
-
 	for {
 		ctx := context.Background()
 		msgType, data, err := conn.Read(ctx)
 		if msgType != websocket.MessageText {
 			slog.Error("incorrect message type")
+			err = conn.Write(ctx, websocket.MessageText, []byte("incorrect message type"))
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+			}
 			return
 		}
 		if websocket.CloseStatus(err) != -1 {
@@ -207,32 +316,63 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			slog.Error("read error",
 				"err", err)
+			err = conn.Write(ctx, websocket.MessageText, []byte("read error"))
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+			}
+			return
+		}
+		var req dto.ConversationSignalRequest
+		err = json.Unmarshal(data, &req)
+		if err != nil {
+			slog.Error("fail to unmarshalling data",
+				"err", err)
+			err = conn.Write(ctx, websocket.MessageText, []byte("fail to unmarshal"))
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+			}
 			return
 		}
 
-		resp := dto.ConversationSignalResponse{
-			MemberId: memberId,
-			Signal:   data,
-		}
-
-		payload, err := json.Marshal(resp)
-		if err != nil {
-			slog.Error("fail to marshalling conversationSignal",
-				"resp", resp)
-		}
-
-		for client := range c.room[conversationIdRaw] {
-			if client == conn {
-				continue
+		to, ok := c.connections[req.ToId]
+		if ok {
+			resp = dto.ConversationSignalResponse{
+				FromId: memberIdRaw,
+				Signal: req.Signal,
 			}
-			err = client.Write(ctx, websocket.MessageText, payload)
+			payload, err = json.Marshal(resp)
 			if err != nil {
-				slog.Error("fail to relay signal")
+				slog.Error("fail to marshalling conversationSignal",
+					"resp", resp)
+				err = conn.Write(ctx, websocket.MessageText, []byte("fail to marshal"))
+				if err != nil {
+					slog.Error("fail to write payload",
+						"err", err,
+					)
+				}
 				return
 			}
+			err = to.Write(ctx, websocket.MessageText, payload)
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+				return
+			}
+			continue
 		}
-		err = c.service.PublishConversationSignal(ip, conversationIdRaw, memberId, data)
+		err = c.service.PublishConversationSignal(memberIdRaw, req.ToId, req.Signal)
 		if err != nil {
+			err = conn.Write(init, websocket.MessageText, []byte("fail to publish"))
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+			}
 			return
 		}
 	}

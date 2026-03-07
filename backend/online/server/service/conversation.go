@@ -1,11 +1,11 @@
 package service
 
 import (
+	"backend/online/server/dto"
 	"bytes"
 	"context"
 	"encoding/json"
 	"log/slog"
-	"backend/online/server/dto"
 	"time"
 
 	"github.com/google/uuid"
@@ -90,28 +90,61 @@ func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page
 	return resp, nil
 }
 
-func (s *Service) AddServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
-	err := s.repository.AddServerIP(ctx, conversationId, ip)
+func (s *Service) GetParticipants(ctx context.Context, conversationId bson.ObjectID) (pids []string, err error) {
+	pidsRaw, err := s.repository.GetParticipants(ctx, conversationId)
+	if err != nil {
+		return nil, err
+	}
+	for _, pidRaw := range pidsRaw {
+		pid, err := uuid.FromBytes(pidRaw.Data)
+		if err != nil {
+			slog.Error("fail to parse uuid from pidRaw",
+				"err", err,
+				"pidRaw.Data", pidRaw.Data)
+			return nil, err
+		}
+		pids = append(pids, pid.String())
+	}
+	return pids, nil
+}
+
+func (s *Service) AddParticipant(ctx context.Context, conversationId bson.ObjectID, memberId uuid.UUID) error {
+	err := s.repository.AddParticipant(ctx, conversationId, memberId)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) RemoveServerIP(ctx context.Context, conversationId bson.ObjectID, ip string) error {
-	err := s.repository.RemoveServerIP(ctx, conversationId, ip)
+func (s *Service) RemoveParticipant(ctx context.Context, conversationId bson.ObjectID, memberId uuid.UUID) error {
+	err := s.repository.RemoveParticipant(ctx, conversationId, memberId)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) PublishConversationSignal(ip, conversationId, memberId string, data []byte) error {
+func (s *Service) SetServerIP(ctx context.Context, memberId uuid.UUID, ip string) error {
+	err := s.repository.SetServerIP(ctx, memberId, ip)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) RemoveServerIP(ctx context.Context, memberId uuid.UUID) error {
+	err := s.repository.RemoveServerIP(ctx, memberId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) PublishConversationSignal(fromId, toId string, data []byte) error {
 	msg := dto.ConversationSignalMessage{
-		ServerIP:       ip,
-		ConversationId: conversationId,
-		MemberId:       memberId,
-		Signal:         data,
+		FromId: fromId,
+		ToId:   toId,
+		Signal: data,
 	}
 
 	value, err := json.Marshal(msg)

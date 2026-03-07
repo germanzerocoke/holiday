@@ -9,8 +9,9 @@ import (
 // Member is club independent so reference
 // since we use uuid in token claim subject we use bson.Binary instead of bson.ObjectID
 type Member struct {
-	Id   bson.Binary `bson:"_id"`
-	Name string      `bson:"name"`
+	Id       bson.Binary `bson:"_id"`
+	Name     string      `bson:"name"`
+	ServerIP string      `bson:"server_ip"`
 
 	ModeratorConversationIds  []bson.ObjectID `bson:"m_c_ids"`
 	RegistrantConversationIds []bson.ObjectID `bson:"r_c_ids"`
@@ -30,9 +31,9 @@ type Conversation struct {
 	Length     time.Duration `bson:"length"`
 	Expired    bool          `bson:"expired"`
 
-	ModeratorIds  []bson.Binary `bson:"m_ids"`
-	RegistrantIds []bson.Binary `bson:"r_ids"`
-	ServerIPs     []string      `bson:"s_ips"`
+	ModeratorIds   []bson.Binary `bson:"m_ids"`
+	RegistrantIds  []bson.Binary `bson:"r_ids"`
+	ParticipantIds []bson.Binary `bson:"p_ids"`
 }
 
 //type Org struct {

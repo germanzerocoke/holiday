@@ -35,13 +35,18 @@ type ConversationFeedResponse struct {
 }
 
 type ConversationSignalResponse struct {
-	MemberId string          `json:"memberId"`
-	Signal   json.RawMessage `json:"signal"`
+	ParticipantIds []string        `json:"participantIds,omitempty"`
+	FromId         string          `json:"fromId,omitempty"`
+	Signal         json.RawMessage `json:"signal,omitempty"`
+}
+
+type ConversationSignalRequest struct {
+	ToId   string          `json:"toId"`
+	Signal json.RawMessage `json:"signal"`
 }
 
 type ConversationSignalMessage struct {
-	ServerIP       string          `json:"serverIP"`
-	ConversationId string          `json:"conversationId"`
-	MemberId       string          `json:"memberId"`
-	Signal         json.RawMessage `json:"signal"`
+	FromId string          `json:"fromId"`
+	ToId   string          `json:"toId"`
+	Signal json.RawMessage `json:"signal,omitempty"`
 }
