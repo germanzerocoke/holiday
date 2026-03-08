@@ -337,6 +337,10 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
+		if req.ToId == "" {
+			slog.Info("close the connection signal")
+			return
+		}
 
 		to, ok := c.connections[req.ToId]
 		if ok {

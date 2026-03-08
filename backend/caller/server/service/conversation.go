@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -39,7 +40,7 @@ func (s *Service) PropagateSignal(ctx context.Context, fromId, toIdRaw string, s
 
 	client := pb.NewSignalServiceClient(cc)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 
 	req := pb.RelaySignalRequest{
