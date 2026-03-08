@@ -83,7 +83,6 @@ func (x *RelaySignalRequest) GetSignal() []byte {
 
 type RelaySignalResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -118,13 +117,6 @@ func (*RelaySignalResponse) Descriptor() ([]byte, []int) {
 	return file_proto_signal_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *RelaySignalResponse) GetOk() bool {
-	if x != nil {
-		return x.Ok
-	}
-	return false
-}
-
 var File_proto_signal_proto protoreflect.FileDescriptor
 
 const file_proto_signal_proto_rawDesc = "" +
@@ -133,9 +125,8 @@ const file_proto_signal_proto_rawDesc = "" +
 	"\x12RelaySignalRequest\x12\x16\n" +
 	"\x06fromId\x18\x01 \x01(\tR\x06fromId\x12\x12\n" +
 	"\x04toId\x18\x02 \x01(\tR\x04toId\x12\x16\n" +
-	"\x06signal\x18\x03 \x01(\fR\x06signal\"%\n" +
-	"\x13RelaySignalResponse\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok2e\n" +
+	"\x06signal\x18\x03 \x01(\fR\x06signal\"\x15\n" +
+	"\x13RelaySignalResponse2e\n" +
 	"\rSignalService\x12T\n" +
 	"\vRelaySignal\x12!.signalservice.RelaySignalRequest\x1a\".signalservice.RelaySignalResponseB\x0fZ\rbackend/protob\x06proto3"
 

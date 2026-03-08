@@ -367,7 +367,7 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		}
 		err = c.service.PublishConversationSignal(memberIdRaw, req.ToId, req.Signal)
 		if err != nil {
-			err = conn.Write(init, websocket.MessageText, []byte("fail to publish"))
+			err = conn.Write(ctx, websocket.MessageText, []byte("fail to publish"))
 			if err != nil {
 				slog.Error("fail to write payload",
 					"err", err,
@@ -390,4 +390,26 @@ func getPodIP() (string, error) {
 		}
 	}
 	return "", errors.New("IP not found")
+}
+
+func (c *Controller) RelaySignal(ctx context.Context, fromId, toId string, signal []byte) error {
+	resp := dto.ConversationSignalResponse{
+		FromId: fromId,
+		Signal: signal,
+	}
+	payload, err := json.Marshal(resp)
+	if err != nil {
+		slog.Error("fail to marshal ConversationSignalResponse",
+			"err", err)
+		return err
+	}
+
+	err = c.connections[toId].Write(ctx, websocket.MessageText, payload)
+	if err != nil {
+		slog.Error("fail to write payload",
+			"err", err,
+		)
+		return err
+	}
+	return nil
 }
