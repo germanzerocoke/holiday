@@ -194,6 +194,9 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		slog.Info("fail to accept connection", err)
 		return
 	}
+	if c.connections == nil {
+		c.connections = make(map[string]*websocket.Conn)
+	}
 	c.connections[memberIdRaw] = conn
 
 	ip, _ := getPodIP()
