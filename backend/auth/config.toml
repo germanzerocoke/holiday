@@ -1,7 +1,0 @@
-[info]
-port = ":8080"
-issuer = "Holiday"
-audience = "com.xcecv.mobile"
-
-[cassandra]
-keyspace = "default"

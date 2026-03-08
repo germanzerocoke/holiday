@@ -1,7 +1,6 @@
 package server
 
 import (
-	"backend/auth/config"
 	"backend/auth/server/kafka/producer"
 	"backend/auth/server/logger"
 	"backend/auth/server/network"
@@ -9,24 +8,17 @@ import (
 	"backend/auth/server/service"
 )
 
-type Server struct {
-	config *config.Config
-}
-
-func NewServer(cfg *config.Config) *Server {
-	server := &Server{cfg}
+func NewServer() {
 
 	kp := producer.NewKafkaProducer()
 
 	logger.SetLogger(kp)
 
-	r := repository.NewRepository(cfg)
+	r := repository.NewRepository()
 
-	s := service.NewService(cfg, r, kp)
+	s := service.NewService(r, kp)
 
-	n := network.NewNetwork(cfg, s)
+	n := network.NewNetwork(s)
 
 	n.Start()
-
-	return server
 }

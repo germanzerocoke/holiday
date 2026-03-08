@@ -3,7 +3,6 @@ package repository
 import (
 	"log"
 	"os"
-	"backend/auth/config"
 	"time"
 
 	"github.com/apache/cassandra-gocql-driver/v2"
@@ -16,13 +15,11 @@ type Repository struct {
 	session *gocql.Session
 }
 
-func NewRepository(config *config.Config) *Repository {
-
+func NewRepository() *Repository {
 	cluster := gocql.NewCluster(os.Getenv("CASSANDRA_URL"))
 	cluster.Keyspace = "default"
 	cluster.Timeout = 1 * time.Minute
 	cluster.Consistency = gocql.Quorum
-	cluster.Keyspace = config.Cassandra.Keyspace
 	cluster.Compressor = &lz4.LZ4Compressor{}
 	//cluster.PageSize = 1000
 	//cluster.NextPagePrefetch = 0.25

@@ -8,6 +8,8 @@ import (
 
 	"github.com/IBM/sarama"
 	"github.com/google/uuid"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 type KafkaProducer struct {

@@ -1,7 +1,6 @@
 package network
 
 import (
-	"backend/auth/config"
 	"backend/auth/server/service"
 
 	"github.com/gin-gonic/gin"
@@ -10,14 +9,12 @@ import (
 type Network struct {
 	service *service.Service
 	engine  *gin.Engine
-	port    string
 }
 
-func NewNetwork(cfg *config.Config, s *service.Service) *Network {
+func NewNetwork(s *service.Service) *Network {
 	n := &Network{
 		service: s,
 		engine:  gin.New(),
-		port:    cfg.Info.Port,
 	}
 
 	setGin(n.engine)
@@ -30,5 +27,5 @@ func NewNetwork(cfg *config.Config, s *service.Service) *Network {
 }
 
 func (n *Network) Start() error {
-	return n.engine.Run(n.port)
+	return n.engine.Run(":8080")
 }

@@ -18,8 +18,8 @@ import (
 
 func conversationRouter(c *Controller) {
 	c.Router(POST, "/conversation/create", c.createConversation)
-	c.Router(GET, "/conversation/list?page={page}", c.getConversations)
-	c.Router(GET, "/conversation/join?conversationId={conversationId}", c.joinConversation)
+	c.Router(GET, "/conversation/list", c.getConversations)
+	c.Router(GET, "/conversation/join", c.joinConversation)
 }
 
 func (c *Controller) createConversation(w http.ResponseWriter, r *http.Request) {
@@ -335,10 +335,6 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 					"err", err,
 				)
 			}
-			return
-		}
-		if req.ToId == "" {
-			slog.Info("close the connection signal")
 			return
 		}
 
