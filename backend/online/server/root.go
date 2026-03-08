@@ -30,7 +30,12 @@ func NewServer() {
 	ks := consumer.NewKafkaConsumer(s)
 
 	go func() {
-		ks.GetMessage([]string{"auth.new_member_id"})
+		err := ks.GetMessage([]string{"auth.new_member_id"})
+		if err != nil {
+			slog.Error("fail to get message from kafka",
+				"err", err)
+			return
+		}
 	}()
 
 	mux := http.NewServeMux()

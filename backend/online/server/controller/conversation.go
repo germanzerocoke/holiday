@@ -378,20 +378,6 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getPodIP() (string, error) {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return "", err
-	}
-	for _, addr := range addrs {
-		ipNet, ok := addr.(*net.IPNet)
-		if ok && !ipNet.IP.IsLoopback() && ipNet.IP.To4() != nil {
-			return ipNet.IP.String(), nil
-		}
-	}
-	return "", errors.New("IP not found")
-}
-
 func (c *Controller) RelaySignal(ctx context.Context, fromId, toId string, signal []byte) error {
 	resp := dto.ConversationSignalResponse{
 		FromId: fromId,
@@ -412,4 +398,18 @@ func (c *Controller) RelaySignal(ctx context.Context, fromId, toId string, signa
 		return err
 	}
 	return nil
+}
+
+func getPodIP() (string, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+	for _, addr := range addrs {
+		ipNet, ok := addr.(*net.IPNet)
+		if ok && !ipNet.IP.IsLoopback() && ipNet.IP.To4() != nil {
+			return ipNet.IP.String(), nil
+		}
+	}
+	return "", errors.New("IP not found")
 }

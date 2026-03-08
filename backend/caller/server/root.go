@@ -14,5 +14,4 @@ func NewServer() {
 	ks := consumer.NewKafkaConsumer(s)
 
 	ks.GetMessage([]string{"conversation.signal"})
-
 }
