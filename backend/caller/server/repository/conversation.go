@@ -5,27 +5,27 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-func (r *Repository) GetServerIPs(ctx context.Context, conversationId bson.ObjectID) ([]string, error) {
+func (r *Repository) GetServerIp(ctx context.Context, id uuid.UUID) (string, error) {
 	filter := bson.M{
-		"_id": conversationId,
+		"_id": id,
 	}
 
 	opts := options.FindOne().SetProjection(bson.M{
-		"s_ips": 1,
-		"_id":   0,
+		"server_ip": 1,
+		"_id":       0,
 	})
 
-	var d document.Conversation
-	err := r.db.Collection("conversation").FindOne(ctx, filter, opts).Decode(&d)
+	var d document.Member
+	err := r.db.Collection("member").FindOne(ctx, filter, opts).Decode(&d)
 	if err != nil {
-		slog.Info("fail to find ips",
+		slog.Info("fail to find ip",
 			"err", err)
-		return nil, err
+		return "", err
 	}
-
-	return d.ServerIPs, nil
+	return d.ServerIP, nil
 }

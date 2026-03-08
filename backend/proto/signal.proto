@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "backend/proto";
+
+package signalservice;
+
+service SignalService {
+  rpc RelaySignal(RelaySignalRequest) returns (RelaySignalResponse);
+}
+
+message RelaySignalRequest {
+  string fromId = 1;
+  string toId = 2;
+  bytes signal = 3;
+}
+
+message RelaySignalResponse {
+  bool ok = 1;
+}

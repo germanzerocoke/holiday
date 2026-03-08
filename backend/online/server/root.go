@@ -2,14 +2,24 @@ package server
 
 import (
 	"backend/online/server/controller"
+	"backend/online/server/grpccontroller"
 	"backend/online/server/kafka/consumer"
 	"backend/online/server/kafka/producer"
 	"backend/online/server/repository"
 	"backend/online/server/service"
+	pb "backend/proto"
+	"log"
+	"log/slog"
+	"net"
 	"net/http"
+	"os"
+
+	"google.golang.org/grpc"
 )
 
-func NewServer(mux *http.ServeMux) {
+func NewServer() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
 
 	kp := producer.NewKafkaProducer()
 
@@ -23,5 +33,29 @@ func NewServer(mux *http.ServeMux) {
 		ks.GetMessage([]string{"auth.new_member_id"})
 	}()
 
-	controller.SetController(s, mux)
+	mux := http.NewServeMux()
+
+	c := controller.NewController(s, mux)
+
+	go func() {
+		err := http.ListenAndServe(":8080", mux)
+		if err != nil {
+			slog.Error("fail to listen and serve http",
+				"err", err)
+			return
+		}
+	}()
+
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Panic("fail to create tcp listener at port 50051")
+	}
+	gc := grpccontroller.NewGrpcController(c)
+	g := grpc.NewServer()
+	pb.RegisterSignalServiceServer(g, gc)
+	err = g.Serve(lis)
+	if err != nil {
+		log.Fatalf("fail to serve: %v", err)
+	}
+
 }

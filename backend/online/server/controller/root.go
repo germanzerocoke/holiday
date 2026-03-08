@@ -22,7 +22,7 @@ type Controller struct {
 	connections map[string]*websocket.Conn
 }
 
-func SetController(s *service.Service, m *http.ServeMux) {
+func NewController(s *service.Service, m *http.ServeMux) *Controller {
 
 	c := &Controller{
 		service: s,
@@ -30,6 +30,8 @@ func SetController(s *service.Service, m *http.ServeMux) {
 	}
 
 	conversationRouter(c)
+
+	return c
 }
 
 func (c *Controller) Router(httpMethod HTTPMethod, path string, handler http.HandlerFunc) {

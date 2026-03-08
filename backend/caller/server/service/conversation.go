@@ -5,21 +5,19 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"github.com/google/uuid"
 )
 
-func (s *Service) PropagateSignal(ctx context.Context, ip, conversationIdRaw, memberId string, signal json.RawMessage) error {
-	conversationId, err := bson.ObjectIDFromHex(conversationIdRaw)
+func (s *Service) PropagateSignal(ctx context.Context, fromId, toIdRaw string, signal json.RawMessage) error {
+	toId, err := uuid.Parse(toIdRaw)
 	if err != nil {
 		slog.Error("fail to parse")
 		return err
 	}
-	ips, err := s.repository.GetServerIPs(ctx, conversationId)
+	ip, err := s.repository.GetServerIp(ctx, toId)
 	if err != nil {
 		return err
 	}
-	for _, sip := range ips {
 
-	}
-
+	return nil
 }

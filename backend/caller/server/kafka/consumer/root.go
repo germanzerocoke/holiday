@@ -162,7 +162,7 @@ func (ks *KafkaConsumer) distinguishMessage(message *sarama.ConsumerMessage) err
 				"message.Value", message.Value)
 			return err
 		}
-		err = ks.service.PropagateSignal(ctx, msg.ServerIP, msg.ConversationId, msg.MemberId, msg.Signal)
+		err = ks.service.PropagateSignal(ctx, msg.FromId, msg.ToId, msg.Signal)
 		if err != nil {
 			return err
 		}

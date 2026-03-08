@@ -1,26 +1,12 @@
 package document
 
-import (
-	"time"
+import "go.mongodb.org/mongo-driver/v2/bson"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
-)
+type Member struct {
+	Id       bson.Binary `bson:"_id"`
+	Name     string      `bson:"name"`
+	ServerIP string      `bson:"server_ip"`
 
-type Conversation struct {
-	Id         bson.ObjectID `bson:"_id"`
-	Novel      string        `bson:"novel,omitempty"`
-	ShortStory string        `bson:"short_story,omitempty"`
-	Poem       string        `bson:"poem,omitempty"`
-	Drama      string        `bson:"drama,omitempty"`
-	Film       string        `bson:"film,omitempty"`
-	By         string        `bson:"by,omitempty"`
-	Rule       string        `bson:"rule,omitempty"`
-	Capacity   int           `bson:"capacity"`
-	When       time.Time     `bson:"when"`
-	Length     time.Duration `bson:"length"`
-	Expired    bool          `bson:"expired"`
-
-	ModeratorIds  []bson.Binary `bson:"m_ids"`
-	RegistrantIds []bson.Binary `bson:"r_ids"`
-	ServerIPs     []string      `bson:"s_ips"`
+	ModeratorConversationIds  []bson.ObjectID `bson:"m_c_ids"`
+	RegistrantConversationIds []bson.ObjectID `bson:"r_c_ids"`
 }
