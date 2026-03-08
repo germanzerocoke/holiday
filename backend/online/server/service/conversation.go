@@ -124,22 +124,6 @@ func (s *Service) RemoveParticipant(ctx context.Context, conversationId bson.Obj
 	return nil
 }
 
-func (s *Service) SetServerIP(ctx context.Context, memberId uuid.UUID, ip string) error {
-	err := s.repository.SetServerIP(ctx, memberId, ip)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) RemoveServerIP(ctx context.Context, memberId uuid.UUID) error {
-	err := s.repository.RemoveServerIP(ctx, memberId)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *Service) PublishConversationSignal(fromId, toId string, data []byte) error {
 	msg := dto.ConversationSignalMessage{
 		FromId: fromId,

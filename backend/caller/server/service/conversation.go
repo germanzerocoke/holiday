@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"time"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -18,7 +17,7 @@ func (s *Service) PropagateSignal(ctx context.Context, fromId, toIdRaw string, s
 		slog.Error("fail to parse")
 		return err
 	}
-	ip, err := s.repository.GetServerIp(ctx, toId)
+	ip, err := s.repository.GetServerIP(ctx, toId)
 	if err != nil {
 		return err
 	}
@@ -40,7 +39,7 @@ func (s *Service) PropagateSignal(ctx context.Context, fromId, toIdRaw string, s
 
 	client := pb.NewSignalServiceClient(cc)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	req := pb.RelaySignalRequest{

@@ -139,28 +139,3 @@ func (r *Repository) RemoveParticipant(ctx context.Context, conversationId bson.
 	}
 	return nil
 }
-
-func (r *Repository) SetServerIP(ctx context.Context, memberId uuid.UUID, ip string) error {
-	_, err := r.db.Collection("member").
-		UpdateOne(ctx, bson.M{"_id": bson.Binary{Subtype: 4, Data: memberId[:]}},
-			bson.M{"$set": bson.M{"server_ip": ip}})
-	if err != nil {
-		slog.Error("fail to set ip to conversation doc's server ips",
-			"err", err)
-		return err
-	}
-	return nil
-}
-
-func (r *Repository) RemoveServerIP(ctx context.Context, memberId uuid.UUID) error {
-
-	_, err := r.db.Collection("member").
-		UpdateOne(ctx, bson.M{"_id": bson.Binary{Subtype: 4, Data: memberId[:]}},
-			bson.M{"$unset": bson.M{"server_ip": ""}})
-	if err != nil {
-		slog.Error("fail to remove ip to conversation doc's server ips",
-			"err", err)
-		return err
-	}
-	return nil
-}

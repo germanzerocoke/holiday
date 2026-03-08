@@ -10,9 +10,9 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-func (r *Repository) GetServerIp(ctx context.Context, id uuid.UUID) (string, error) {
+func (r *Repository) GetServerIP(ctx context.Context, id uuid.UUID) (string, error) {
 	filter := bson.M{
-		"_id": id,
+		"_id": bson.Binary{Subtype: 4, Data: id[:]},
 	}
 
 	opts := options.FindOne().SetProjection(bson.M{
