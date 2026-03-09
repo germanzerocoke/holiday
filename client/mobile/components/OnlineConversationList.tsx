@@ -2,12 +2,12 @@ import { useRef, useState } from "react";
 import { FlatList, StyleSheet } from "react-native";
 import { colors } from "@/constants";
 import { useScrollToTop } from "@react-navigation/native";
-import OnlineClubItem from "@/components/OnlineClubItem";
-import { useGetInfiniteOnlineClubs } from "@/hooks/useClub";
+import OnlineConversationItem from "@/components/OnlineConversationItem";
+import { useGetInfiniteOnlineConversations } from "@/hooks/useConversation";
 
-export default function OnlineClubList() {
+export default function OnlineConversationList() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    useGetInfiniteOnlineClubs();
+    useGetInfiniteOnlineConversations();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const ref = useRef<FlatList | null>(null);
   useScrollToTop(ref);
@@ -28,7 +28,7 @@ export default function OnlineClubList() {
     <FlatList
       ref={ref}
       data={data?.pages.flat()}
-      renderItem={({ item }) => <OnlineClubItem club={item} />}
+      renderItem={({ item }) => <OnlineConversationItem conversation={item} />}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.contentContainer}
       onEndReached={handleEndReached}

@@ -25,10 +25,10 @@ export const colors = {
 
 export const queryKey = {
   AUTH: "auth",
-  CLUB: "club",
+  CONVERSATION: "conversation",
   GET_ME: "getMe",
-  GET_ONLINE_CLUBS: "getOnlineClubs",
-  GET_ONLINE_CLUB: "getOnlineClub",
+  GET_ONLINE_CONVERSATIONS: "getOnlineConversations",
+  JOIN_ONLINE_CONVERSATION: "joinOnlineConversation",
 };
 
 export const time = {

@@ -1,6 +1,4 @@
-import React from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
-import { colors } from "@/constants";
 import InputField from "@/components/InputField";
 
 export default function PasswordConfirmInput() {

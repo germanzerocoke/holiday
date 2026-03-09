@@ -1,20 +1,22 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "@/constants";
-import { OnlineClub } from "@/types/club";
 import { router } from "expo-router";
+import { OnlineConversation } from "@/types/conversation";
 
-interface OnlineClubItemProps {
-  club: OnlineClub;
+interface OnlineConversationItemProps {
+  conversation: OnlineConversation;
 }
 
-export default function OnlineClubItem({ club }: OnlineClubItemProps) {
+export default function OnlineConversationItem({
+  conversation,
+}: OnlineConversationItemProps) {
   return (
     <Pressable
       style={styles.container}
-      onPress={() => router.push(`/club/online/${club.id}`)}
+      onPress={() => router.push(`/conversation/online/${conversation.id}`)}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>{club.title}</Text>
+        <Text style={styles.title}>{conversation.title}</Text>
         <Text style={styles.description}>description</Text>
       </View>
     </Pressable>

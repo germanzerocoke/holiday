@@ -1,17 +1,17 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "@/constants";
-import OnlineClubList from "@/components/OnlineClubList";
+import OnlineConversationList from "@/components/OnlineConversationList";
 
-export default function OnlineClubListScreen() {
+export default function OnlineConversationListScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <OnlineClubList />
+      <OnlineConversationList />
       <Pressable
         style={styles.createButton}
-        onPress={() => router.push("/club/online/create")}
+        onPress={() => router.push("/conversation/online/create")}
       >
         <Feather name="plus" size={32} color="black" />
       </Pressable>

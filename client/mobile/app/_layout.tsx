@@ -20,7 +20,7 @@ function RootNavigator() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{ headerShown: false }} />
-      <Stack.Screen name="club" options={{ headerShown: false }} />
+      <Stack.Screen name="conversation" options={{ headerShown: false }} />
     </Stack>
   );
 }

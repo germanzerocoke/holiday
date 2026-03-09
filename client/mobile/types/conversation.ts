@@ -1,9 +1,9 @@
-export interface OnlineClub {
+export interface OnlineConversation {
   id: string;
   title: string;
 }
 
-export interface OnlineClubDetail {
+export interface OnlineConversationDetail {
   id: string;
   title: string;
   leaderId: string;

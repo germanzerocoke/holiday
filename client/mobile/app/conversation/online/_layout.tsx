@@ -6,14 +6,14 @@ export default function OnlineLayout() {
       <Stack.Screen
         name="list"
         options={{
-          title: "Online club list",
+          title: "Online conversation list",
           headerShown: true,
         }}
       />
       <Stack.Screen
         name="create"
         options={{
-          title: "Create your online club",
+          title: "Create your online conversation",
           headerShown: true,
         }}
       />

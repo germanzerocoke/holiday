@@ -1,11 +1,15 @@
 import { StyleSheet, Text, View } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { colors } from "@/constants";
-import { useGetOnlineClub } from "@/hooks/useClub";
+import { useJoinOnlineConversation } from "@/hooks/useConversation";
 
-export default function OnlineClubDetailScreen() {
+export default function OnlineConversationDetailScreen() {
   const { id } = useLocalSearchParams();
-  const { data: club, isPending, isError } = useGetOnlineClub(String(id));
+  const {
+    data: conversation,
+    isPending,
+    isError,
+  } = useJoinOnlineConversation(String(id));
 
   if (isPending || isError) {
     return <></>;
@@ -14,7 +18,7 @@ export default function OnlineClubDetailScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>{club?.title}</Text>
+        <Text style={styles.title}>{conversation?.title}</Text>
         <Text style={styles.description}>description</Text>
       </View>
     </View>

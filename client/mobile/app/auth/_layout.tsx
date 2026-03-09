@@ -11,7 +11,7 @@ export default function AuthLayout() {
         }}
       />
       <Stack.Screen
-        name="phonenumber"
+        name="phone-number"
         options={{
           title: "Verify your phone number",
           headerShown: true,
