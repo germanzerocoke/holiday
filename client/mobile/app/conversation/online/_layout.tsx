@@ -4,9 +4,9 @@ export default function OnlineLayout() {
   return (
     <Stack>
       <Stack.Screen
-        name="list"
+        name="index"
         options={{
-          title: "Online conversation list",
+          title: "Online conversation",
           headerShown: true,
         }}
       />

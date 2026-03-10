@@ -2,10 +2,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import Toast from "react-native-toast-message";
 import { getSecureStore, saveSecureStore } from "@/util/secureStore";
 import {
-  getMe,
+  getMyId,
   loginInWithEmail,
   signUpWithEmail,
-  requestEmailOTP,
   requestSMSOTP,
   signInWithApple,
   verifyEmailOTP,
@@ -13,10 +12,10 @@ import {
 } from "@/api/auth";
 import { queryKey } from "@/constants";
 
-function useGetMe() {
+function useGetMyId() {
   const { data } = useQuery({
-    queryFn: getMe,
-    queryKey: [queryKey.AUTH, queryKey.GET_ME],
+    queryFn: getMyId,
+    queryKey: [queryKey.AUTH, queryKey.GET_MY_ID],
   });
 
   return { data };
@@ -132,7 +131,7 @@ function useSignInWithApple() {
 }
 
 export function useAuth() {
-  // const { data } = useGetMe();
+  const { data } = useGetMyId();
   const signUpWithEmailMutation = useSignupWithEmail();
   const loginWithEmailMutation = useLoginWithEmail();
   const verifyEmailOTPMutation = useVerifyEmailOTP();
@@ -141,9 +140,7 @@ export function useAuth() {
   const signInWithAppleMutation = useSignInWithApple();
 
   return {
-    auth: {
-      id: "",
-    },
+    id: data?.id,
     signUpWithEmailMutation,
     loginWithEmailMutation,
     verifyEmailOTPMutation,

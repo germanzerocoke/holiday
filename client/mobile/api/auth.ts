@@ -1,4 +1,4 @@
-import { axiosInstance } from "@/api/axios";
+import { axiosInstance, localDevInstance } from "@/api/axios";
 import {
   LoginWithEmailResponse,
   SignInWithAppleRequest,
@@ -62,7 +62,7 @@ export async function signInWithApple(
   return data;
 }
 
-export async function getMe() {
-  const { data } = await axiosInstance.get("/auth/me");
+export async function getMyId(): Promise<{ id: string }> {
+  const { data } = await localDevInstance.get("/auth/my-id");
   return data;
 }

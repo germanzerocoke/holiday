@@ -1,7 +1,8 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import {
   getOnlineConversations,
   joinOnlineConversation,
+  createOnlineConversation,
 } from "@/api/conversation";
 import { queryKey } from "@/constants";
 
@@ -22,5 +23,11 @@ export function useJoinOnlineConversation(id: string) {
     queryFn: () => joinOnlineConversation(id),
     queryKey: [queryKey.CONVERSATION, queryKey.JOIN_ONLINE_CONVERSATION, id],
     enabled: Boolean(id),
+  });
+}
+
+export function useCreateOnlineConversation() {
+  return useMutation({
+    mutationFn: createOnlineConversation,
   });
 }

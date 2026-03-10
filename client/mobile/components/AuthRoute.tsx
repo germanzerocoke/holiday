@@ -7,11 +7,11 @@ interface AuthRouteProps {
 }
 
 export default function AuthRoute({ children }: AuthRouteProps) {
-  const { auth } = useAuth();
+  const { id } = useAuth();
 
   useFocusEffect(() => {
-    !auth.id && router.replace("/auth");
-    auth.id && router.replace("/home");
+    !id && router.replace("/auth");
+    id && router.replace("/home");
   });
   return <>{children}</>;
 }

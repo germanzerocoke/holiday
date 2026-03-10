@@ -5,7 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { colors } from "@/constants";
 import OnlineConversationList from "@/components/OnlineConversationList";
 
-export default function OnlineConversationListScreen() {
+export default function OnlineConversationHomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <OnlineConversationList />

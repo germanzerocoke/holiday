@@ -1,12 +1,12 @@
-import { StyleSheet, View } from "react-native";
-import { FormProvider, useForm } from "react-hook-form";
-import FixedBottomCTA from "@/components/FixedBottomCTA";
-import EmailInput from "@/components/EmailInput";
-import PasswordInput from "@/components/PasswordInput";
-import PasswordConfirmInput from "@/components/PasswordConfirmInput";
-import { useAuth } from "@/hooks/useAuth";
-import { colors } from "@/constants";
-import { router } from "expo-router";
+import { StyleSheet, View } from 'react-native';
+import { FormProvider, useForm } from 'react-hook-form';
+import FixedBottomCTA from '@/components/FixedBottomCTA';
+import EmailInput from '@/components/EmailInput';
+import PasswordInput from '@/components/PasswordInput';
+import PasswordConfirmInput from '@/components/PasswordConfirmInput';
+import { useAuth } from '@/hooks/useAuth';
+import { colors } from '@/constants';
+import { router } from 'expo-router';
 
 interface FormValue {
   email: string;
@@ -19,9 +19,9 @@ export default function SignupScreen() {
 
   const emailSignupForm = useForm<FormValue>({
     defaultValues: {
-      email: "",
-      password: "",
-      passwordConfirm: "",
+      email: '',
+      password: '',
+      passwordConfirm: '',
     },
   });
 
@@ -34,7 +34,7 @@ export default function SignupScreen() {
         password,
       },
       {
-        onSuccess: () => router.replace("/auth/otp/email"),
+        onSuccess: () => router.replace('/auth/otp/email'),
       },
     );
   };
@@ -47,7 +47,7 @@ export default function SignupScreen() {
           <PasswordConfirmInput />
         </View>
         <FixedBottomCTA
-          label="sign up"
+          label="Sign up"
           onPress={emailSignupForm.handleSubmit(onSubmit)}
         />
       </View>

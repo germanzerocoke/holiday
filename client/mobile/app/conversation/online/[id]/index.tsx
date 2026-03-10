@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router";
 import { colors } from "@/constants";
 import { useJoinOnlineConversation } from "@/hooks/useConversation";
 
-export default function OnlineConversationDetailScreen() {
+export default function OnlineConversationRoomScreen() {
   const { id } = useLocalSearchParams();
   const {
     data: conversation,

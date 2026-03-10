@@ -26,7 +26,7 @@ export const colors = {
 export const queryKey = {
   AUTH: "auth",
   CONVERSATION: "conversation",
-  GET_ME: "getMe",
+  GET_MY_ID: "getMyId",
   GET_ONLINE_CONVERSATIONS: "getOnlineConversations",
   JOIN_ONLINE_CONVERSATION: "joinOnlineConversation",
 };
