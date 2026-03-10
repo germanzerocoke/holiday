@@ -12,6 +12,11 @@ import FilmInput from "@/components/FilmInput";
 import ByInput from "@/components/ByInput";
 import RuleInput from "@/components/RuleInput";
 import CapacityInput from "@/components/CapacityInput";
+import YearInput from "@/components/YearInput";
+import MonthDayInput from "@/components/MonthDayInput";
+import HourInput from "@/components/HourInput";
+import MinuteInput from "@/components/MinuteInput";
+import LengthInput from "@/components/LengthInput";
 
 interface FormValue {
   novel?: string;
@@ -22,15 +27,15 @@ interface FormValue {
   by?: string;
   rule?: string;
   capacity: number;
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  length: number;
+  year: string;
+  monthDay: string;
+  hour: string;
+  minute: string;
+  length: string;
 }
 
 export default function OnlineConversationCreateScreen() {
+  const now = new Date();
   const createOnlineConversationMutation = useCreateOnlineConversation();
   const onlineConversationForm = useForm<FormValue>({
     defaultValues: {
@@ -42,12 +47,11 @@ export default function OnlineConversationCreateScreen() {
       by: "",
       rule: "",
       capacity: 6,
-      year: new Date().getFullYear(),
-      month: new Date().getMonth(),
-      day: new Date().getDay(),
-      hour: new Date().getHours(),
-      minute: new Date().getMinutes(),
-      length: 100,
+      year: String(now.getFullYear()),
+      monthDay: `${now.getMonth() + 1}.${now.getDate()}`,
+      hour: String(now.getHours()),
+      minute: String(now.getMinutes()),
+      length: "100",
     },
   });
   const onSubmit = (formValues: FormValue) => {
@@ -61,13 +65,21 @@ export default function OnlineConversationCreateScreen() {
       rule,
       capacity,
       year,
-      month,
-      day,
+      monthDay,
       hour,
       minute,
       length,
     } = formValues;
-    const when = new Date(year, month, day, hour, minute).toISOString();
+    const monthDayParts = monthDay.split(".");
+    const month = monthDayParts[0] ?? String(now.getMonth() + 1);
+    const day = monthDayParts[1] ?? String(now.getDate());
+    const when = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+    ).toISOString();
     createOnlineConversationMutation.mutate(
       {
         novel: novel,
@@ -79,7 +91,7 @@ export default function OnlineConversationCreateScreen() {
         rule: rule,
         capacity: capacity,
         when: when,
-        length: `${String(length)}m0s`,
+        length: `${length}m0s`,
       },
       {
         onSuccess: () => {
@@ -101,11 +113,20 @@ export default function OnlineConversationCreateScreen() {
           <ByInput />
           <RuleInput />
           <CapacityInput />
-          <YearInput />
-          <MonthInput />
-          <DayInput />
-          <HourInput />
-          <MinuteInput />
+          <View style={styles.dateTimeRow}>
+            <View style={styles.yearBox}>
+              <YearInput />
+            </View>
+            <View style={styles.monthDayBox}>
+              <MonthDayInput />
+            </View>
+            <View style={styles.timeBox}>
+              <HourInput />
+            </View>
+            <View style={styles.timeBox}>
+              <MinuteInput />
+            </View>
+          </View>
           <LengthInput />
         </View>
         <FixedBottomCTA
@@ -129,5 +150,19 @@ const styles = StyleSheet.create({
     margin: 16,
     gap: 16,
     backgroundColor: colors.SAND_110,
+  },
+  dateTimeRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  yearBox: {
+    flex: 1.2,
+  },
+  monthDayBox: {
+    flex: 2,
+  },
+  timeBox: {
+    flex: 1,
   },
 });
