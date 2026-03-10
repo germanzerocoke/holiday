@@ -1,9 +1,9 @@
 package network
 
 import (
-	"net/http"
 	"backend/auth/server/constant"
 	"backend/auth/server/dto"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )

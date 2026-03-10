@@ -22,7 +22,7 @@ type Conversation struct {
 	Novel      string        `bson:"novel,omitempty"`
 	ShortStory string        `bson:"short_story,omitempty"`
 	Poem       string        `bson:"poem,omitempty"`
-	Drama      string        `bson:"drama,omitempty"`
+	Play       string        `bson:"play,omitempty"`
 	Film       string        `bson:"film,omitempty"`
 	By         string        `bson:"by,omitempty"`
 	Rule       string        `bson:"rule,omitempty"`

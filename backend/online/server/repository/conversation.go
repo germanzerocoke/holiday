@@ -13,13 +13,13 @@ import (
 
 const Limit = 10
 
-func (r *Repository) SaveConversation(ctx context.Context, memberId uuid.UUID, conversationId bson.ObjectID, novel, shortStory, poem, drama, film, by, rule string, capacity int, when time.Time, length time.Duration) error {
+func (r *Repository) SaveConversation(ctx context.Context, memberId uuid.UUID, conversationId bson.ObjectID, novel, shortStory, poem, play, film, by, rule string, capacity int, when time.Time, length time.Duration) error {
 	newConversation := document.Conversation{
 		Id:         conversationId,
 		Novel:      novel,
 		ShortStory: shortStory,
 		Poem:       poem,
-		Drama:      drama,
+		Play:       play,
 		Film:       film,
 		By:         by,
 		Rule:       rule,

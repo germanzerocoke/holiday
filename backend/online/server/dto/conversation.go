@@ -9,7 +9,7 @@ type CreateConversationRequest struct {
 	Novel      string    `json:"novel"`
 	ShortStory string    `json:"short_story"`
 	Poem       string    `json:"poem"`
-	Drama      string    `json:"drama"`
+	Play       string    `json:"play"`
 	Film       string    `json:"film"`
 	By         string    `json:"by"`
 	Rule       string    `json:"rule"`
