@@ -1,19 +1,20 @@
 import { Controller, useFormContext } from "react-hook-form";
 import InputField from "@/components/InputField";
 
-export default function ShortStoryInput() {
+export default function ByInput() {
   const { control } = useFormContext();
-
   return (
     <Controller
-      name="shortStory"
+      name="by"
       control={control}
       render={({ field: { onChange, value } }) => (
         <InputField
           variant="standard"
-          label="email"
-          placeholder="The Horse Dealer’s Daughter Cathedral Barn Burning"
+          label="By"
+          placeholder="Shakespeare Soseki Pound"
           inputMode="text"
+          returnKeyType="done"
+          submitBehavior="blurAndSubmit"
           value={value}
           onChangeText={onChange}
         />

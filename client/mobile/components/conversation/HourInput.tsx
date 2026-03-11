@@ -10,24 +10,24 @@ import {
 import { Controller, useFormContext } from "react-hook-form";
 import { colors } from "@/constants";
 
-type MinuteItem = {
-  minute: number;
+type HourItem = {
+  hour: number;
 };
 
-function buildMinuteItems(): MinuteItem[] {
-  const items: MinuteItem[] = [];
+function buildHourItems(): HourItem[] {
+  const items: HourItem[] = [];
 
-  for (let minute = 0; minute <= 59; minute++) {
-    items.push({ minute });
+  for (let hour = 23; hour >= 0; hour--) {
+    items.push({ hour });
   }
 
   return items;
 }
 
-export default function MinuteInput() {
+export default function HourInput() {
   const { control } = useFormContext();
   const [modalVisible, setModalVisible] = useState(false);
-  const [allMinutes] = useState<MinuteItem[]>(() => buildMinuteItems());
+  const [allHours] = useState<HourItem[]>(() => buildHourItems());
 
   const openModal = () => {
     setModalVisible(true);
@@ -39,25 +39,24 @@ export default function MinuteInput() {
 
   return (
     <Controller
-      name="minute"
+      name="hour"
       control={control}
       rules={{
         validate: (data: string) => {
           if (String(data ?? "").trim().length === 0) {
-            return "minute is required";
+            return "hour is required";
           }
         },
       }}
       render={({ field: { onChange, value }, fieldState: { error } }) => {
-        const selected = allMinutes.find(
-          (item) => String(item.minute) === String(value),
+        const selected = allHours.find(
+          (item) => String(item.hour) === String(value),
         );
         const display = selected
-          ? String(selected.minute).padStart(2, "0")
-          : "00";
+          ? String(selected.hour).padStart(2, "0")
+          : "20";
         return (
           <>
-            <Text style={styles.label}>Minute</Text>
             <Pressable
               onPress={openModal}
               style={[styles.box, Boolean(error) && styles.boxError]}
@@ -82,17 +81,17 @@ export default function MinuteInput() {
                 <View style={styles.handle} />
 
                 <ScrollView>
-                  {allMinutes.map((item, index) => (
+                  {allHours.map((item, index) => (
                     <Pressable
                       key={index}
                       style={styles.row}
                       onPress={() => {
-                        onChange(String(item.minute));
+                        onChange(String(item.hour));
                         closeModal();
                       }}
                     >
                       <Text style={styles.valueText} numberOfLines={1}>
-                        {String(item.minute).padStart(2, "0")}
+                        {`At ${String(item.hour)}`}
                       </Text>
                     </Pressable>
                   ))}
@@ -113,12 +112,11 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   box: {
+    flex: 1,
     borderWidth: 1,
     borderColor: colors.GRAY_200,
     borderRadius: 10,
-    paddingHorizontal: 12,
     paddingVertical: 12,
-    minWidth: 92,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.WHITE,

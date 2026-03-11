@@ -10,23 +10,24 @@ import {
 import { Controller, useFormContext } from "react-hook-form";
 import { colors } from "@/constants";
 
-type YearItem = {
-  year: number;
+type MinuteItem = {
+  minute: number;
 };
 
-function buildYearItems(): YearItem[] {
-  const items: YearItem[] = [];
-  const currentYear = new Date().getFullYear();
-  items.push({ year: currentYear });
-  items.push({ year: currentYear + 1 });
+function buildMinuteItems(): MinuteItem[] {
+  const items: MinuteItem[] = [];
+
+  for (let minute = 0; minute <= 59; minute++) {
+    items.push({ minute });
+  }
 
   return items;
 }
 
-export default function YearInput() {
+export default function MinuteInput() {
   const { control } = useFormContext();
   const [modalVisible, setModalVisible] = useState(false);
-  const [allYears] = useState<YearItem[]>(() => buildYearItems());
+  const [allMinutes] = useState<MinuteItem[]>(() => buildMinuteItems());
 
   const openModal = () => {
     setModalVisible(true);
@@ -38,23 +39,24 @@ export default function YearInput() {
 
   return (
     <Controller
-      name="year"
+      name="minute"
       control={control}
       rules={{
         validate: (data: string) => {
           if (String(data ?? "").trim().length === 0) {
-            return "year is required";
+            return "minute is required";
           }
         },
       }}
       render={({ field: { onChange, value }, fieldState: { error } }) => {
-        const selected = allYears.find(
-          (item) => String(item.year) === String(value),
+        const selected = allMinutes.find(
+          (item) => String(item.minute) === String(value),
         );
-        const display = selected?.year ?? new Date().getFullYear();
+        const display = selected
+          ? String(selected.minute).padStart(2, "0")
+          : "00";
         return (
           <>
-            <Text style={styles.label}>Year</Text>
             <Pressable
               onPress={openModal}
               style={[styles.box, Boolean(error) && styles.boxError]}
@@ -79,17 +81,17 @@ export default function YearInput() {
                 <View style={styles.handle} />
 
                 <ScrollView>
-                  {allYears.map((item, index) => (
+                  {allMinutes.map((item, index) => (
                     <Pressable
                       key={index}
                       style={styles.row}
                       onPress={() => {
-                        onChange(String(item.year));
+                        onChange(String(item.minute));
                         closeModal();
                       }}
                     >
                       <Text style={styles.valueText} numberOfLines={1}>
-                        {item.year}
+                        {String(item.minute)}
                       </Text>
                     </Pressable>
                   ))}
@@ -110,12 +112,11 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   box: {
+    flex: 1,
     borderWidth: 1,
     borderColor: colors.GRAY_200,
     borderRadius: 10,
-    paddingHorizontal: 12,
     paddingVertical: 12,
-    minWidth: 92,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.WHITE,

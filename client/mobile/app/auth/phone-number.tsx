@@ -2,8 +2,8 @@ import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, time } from "@/constants";
 import FixedBottomCTA from "@/components/FixedBottomCTA";
-import CountryCodeBox from "@/components/CountryCodeBox";
-import PhoneNumberInput from "@/components/PhoneNumberInput";
+import CountryCodeBox from "@/components/auth/CountryCodeBox";
+import PhoneNumberInput from "@/components/auth/PhoneNumberInput";
 import { FormProvider, useForm } from "react-hook-form";
 import {
   CountryCode,
@@ -76,12 +76,6 @@ export default function PhoneNumberScreen() {
         onSuccess: async () => {
           await saveSecureStore("timeSmsLastSent", String(Date.now()));
           router.push("/auth/otp/sms");
-        },
-        onError: (error) => {
-          Toast.show({
-            type: "error",
-            text1: error.message,
-          });
         },
       },
     );

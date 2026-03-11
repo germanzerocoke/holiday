@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/constants";
 import FixedBottomCTA from "@/components/FixedBottomCTA";
 import { FormProvider, useForm } from "react-hook-form";
-import NicknameInput from "@/components/NicknameInput";
+import NicknameInput from "@/components/profile/NicknameInput";
 import { useNewcomer } from "@/hooks/useNewcomer";
 import { router } from "expo-router";
 

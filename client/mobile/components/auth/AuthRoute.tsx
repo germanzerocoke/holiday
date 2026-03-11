@@ -10,8 +10,8 @@ export default function AuthRoute({ children }: AuthRouteProps) {
   const { id } = useAuth();
 
   useFocusEffect(() => {
-    !id && router.replace("/auth");
-    id && router.replace("/home");
+    // !id && router.replace("/auth");
+    !id && router.replace("/conversation/online");
   });
   return <>{children}</>;
 }

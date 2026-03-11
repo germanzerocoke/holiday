@@ -20,9 +20,35 @@ type MonthDayItem = {
 function buildMonthDayItems(year: number): MonthDayItem[] {
   const items: MonthDayItem[] = [];
 
-  for (let month = 1; month <= 12; month++) {
-    const lastDay = new Date(year, month, 0).getDate();
+  if (year === new Date().getFullYear() + 1) {
+    for (let month = 1; month <= 12; month++) {
+      const lastDay = new Date(year, month, 0).getDate();
 
+      for (let day = 1; day <= lastDay; day++) {
+        const date = new Date(year, month - 1, day);
+        items.push({
+          month,
+          day,
+          weekdayLabel: date.toLocaleDateString("en-US", { weekday: "short" }),
+          monthLabel: date.toLocaleDateString("en-US", { month: "short" }),
+        });
+      }
+    }
+    return items;
+  }
+  let month = new Date().getMonth() + 1;
+  let lastDay = new Date(year, month, 0).getDate();
+  for (let day = new Date().getDate(); day <= lastDay; day++) {
+    const date = new Date(year, month - 1, day);
+    items.push({
+      month,
+      day,
+      weekdayLabel: date.toLocaleDateString("en-US", { weekday: "short" }),
+      monthLabel: date.toLocaleDateString("en-US", { month: "short" }),
+    });
+  }
+  for (month; month <= 12; month++) {
+    lastDay = new Date(year, month, 0).getDate();
     for (let day = 1; day <= lastDay; day++) {
       const date = new Date(year, month - 1, day);
       items.push({
@@ -33,7 +59,6 @@ function buildMonthDayItems(year: number): MonthDayItem[] {
       });
     }
   }
-
   return items;
 }
 
@@ -96,10 +121,7 @@ export default function MonthDayInput() {
                       }}
                     >
                       <Text style={styles.dateText} numberOfLines={1}>
-                        {item.weekdayLabel} {item.day}
-                      </Text>
-                      <Text style={styles.monthText} numberOfLines={1}>
-                        {item.monthLabel}
+                        {item.weekdayLabel} {item.day} {item.monthLabel}
                       </Text>
                     </Pressable>
                   ))}
@@ -115,12 +137,11 @@ export default function MonthDayInput() {
 
 const styles = StyleSheet.create({
   box: {
+    flex: 1,
     borderWidth: 1,
     borderColor: colors.GRAY_200,
     borderRadius: 10,
-    paddingHorizontal: 12,
     paddingVertical: 12,
-    minWidth: 92,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.WHITE,
@@ -158,7 +179,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.GRAY_200,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     gap: 12,
   },
   dateText: {

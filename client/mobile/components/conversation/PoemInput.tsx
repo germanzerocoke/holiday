@@ -1,22 +1,20 @@
-import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import InputField from "@/components/InputField";
 
-export default function NovelInput() {
+export default function PoemInput() {
   const { control } = useFormContext();
-
   return (
     <Controller
-      name="novel"
+      name="poem"
       control={control}
       render={({ field: { onChange, value } }) => (
         <InputField
           variant="standard"
-          label="novel"
-          placeholder="The Castle Kokoro The Stranger Norwegian Wood"
+          label="Poem"
+          placeholder="The Waste Land Sonnet 18 If -"
           inputMode="text"
-          returnKeyType="done"
-          submitBehavior="blurAndSubmit"
+          returnKeyType="next"
+          submitBehavior="submit"
           value={value}
           onChangeText={onChange}
         />

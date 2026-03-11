@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "@/constants";
-import OnlineConversationList from "@/components/OnlineConversationList";
+import OnlineConversationList from "@/components/conversation/OnlineConversationList";
 
 export default function OnlineConversationHomeScreen() {
   return (

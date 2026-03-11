@@ -11,7 +11,7 @@ export default function FilmInput() {
         <InputField
           variant="standard"
           label="Film"
-          placeholder="It Happened One Night Cure The Godfather"
+          placeholder="Cure The Godfather Seven"
           inputMode="text"
           returnKeyType="done"
           submitBehavior="blurAndSubmit"

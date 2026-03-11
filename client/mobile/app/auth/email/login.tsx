@@ -1,8 +1,8 @@
 import { StyleSheet, View } from "react-native";
 import { FormProvider, useForm } from "react-hook-form";
 import FixedBottomCTA from "@/components/FixedBottomCTA";
-import EmailInput from "@/components/EmailInput";
-import PasswordInput from "@/components/PasswordInput";
+import EmailInput from "@/components/auth/EmailInput";
+import PasswordInput from "@/components/auth/PasswordInput";
 import { useAuth } from "@/hooks/useAuth";
 import { colors } from "@/constants";
 import { router } from "expo-router";

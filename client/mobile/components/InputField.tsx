@@ -34,9 +34,9 @@ function InputField(
         style={[
           styles.container,
           styles[variant],
-          props.multiline && styles.multiline,
           Boolean(error) && styles.inputError,
           { height: customHeight },
+          props.multiline && styles.multiline,
         ]}
       >
         <TextInput
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   multiline: {
     alignItems: "flex-start",
     paddingVertical: 10,
-    height: 200,
+    height: 95,
   },
 });
 

@@ -11,10 +11,12 @@ import {
   verifySMSOTP,
 } from "@/api/auth";
 import { queryKey } from "@/constants";
+import { AxiosError } from "axios";
 
 function useGetMyId() {
   const { data } = useQuery({
     queryFn: getMyId,
+
     queryKey: [queryKey.AUTH, queryKey.GET_MY_ID],
   });
 
@@ -28,10 +30,10 @@ function useSignupWithEmail() {
       saveSecureStore("verificationId", data.verificationId);
       console.log("success to save verification Id");
     },
-    onError: (error) => {
+    onError: (error: AxiosError) => {
       Toast.show({
         type: "error",
-        text1: error.message,
+        text1: String(error?.response?.data),
       });
     },
   });
@@ -53,10 +55,10 @@ function useLoginWithEmail() {
       }
       saveSecureStore("accessToken", data?.accessToken ?? "");
     },
-    onError: (error) => {
+    onError: (error: AxiosError) => {
       Toast.show({
         type: "error",
-        text1: error.message,
+        text1: String(error?.response?.data),
       });
     },
   });
@@ -69,10 +71,10 @@ function useRequestSMSOTP() {
       saveSecureStore("verificationId", data.verificationId);
       console.log("success to save verificationId");
     },
-    onError: (error) => {
+    onError: (error: AxiosError) => {
       Toast.show({
         type: "error",
-        text1: error.message,
+        text1: String(error?.response?.data),
       });
     },
   });
@@ -86,10 +88,10 @@ function useVerifyEmailOTP() {
       saveSecureStore("sessionId", data?.sessionId ?? "");
       console.log(await getSecureStore("sessionId"));
     },
-    onError: (error) => {
+    onError: (error: AxiosError) => {
       Toast.show({
         type: "error",
-        text1: error.message,
+        text1: String(error?.response?.data),
       });
     },
   });
@@ -102,10 +104,10 @@ function useVerifySMSOTP() {
       if (data.phoneNumberVerified)
         saveSecureStore("accessToken", data?.accessToken ?? "");
     },
-    onError: (error) => {
+    onError: (error: AxiosError) => {
       Toast.show({
         type: "error",
-        text1: error.message,
+        text1: String(error?.response?.data),
       });
     },
   });
@@ -121,10 +123,10 @@ function useSignInWithApple() {
       }
       saveSecureStore("accessToken", data?.accessToken ?? "");
     },
-    onError: (error) => {
+    onError: (error: AxiosError) => {
       Toast.show({
         type: "error",
-        text1: error.message,
+        text1: String(error?.response?.data),
       });
     },
   });

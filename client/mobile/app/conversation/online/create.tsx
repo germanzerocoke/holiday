@@ -1,22 +1,31 @@
-import { StyleSheet, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { FormProvider, useForm } from "react-hook-form";
 import { useCreateOnlineConversation } from "@/hooks/useConversation";
 import { router } from "expo-router";
 import { colors } from "@/constants";
 import FixedBottomCTA from "@/components/FixedBottomCTA";
-import NovelInput from "@/components/NovelInput";
-import ShortStoryInput from "@/components/ShortStoryInput";
-import PoemInput from "@/components/PoemInput";
-import PlayInput from "@/components/PlayInput";
-import FilmInput from "@/components/FilmInput";
-import ByInput from "@/components/ByInput";
-import RuleInput from "@/components/RuleInput";
-import CapacityInput from "@/components/CapacityInput";
-import YearInput from "@/components/YearInput";
-import MonthDayInput from "@/components/MonthDayInput";
-import HourInput from "@/components/HourInput";
-import MinuteInput from "@/components/MinuteInput";
-import LengthInput from "@/components/LengthInput";
+import NovelInput from "@/components/conversation/NovelInput";
+import ShortStoryInput from "@/components/conversation/ShortStoryInput";
+import PoemInput from "@/components/conversation/PoemInput";
+import PlayInput from "@/components/conversation/PlayInput";
+import FilmInput from "@/components/conversation/FilmInput";
+import ByInput from "@/components/conversation/ByInput";
+import RuleInput from "@/components/conversation/RuleInput";
+import CapacityInput from "@/components/conversation/CapacityInput";
+import YearInput from "@/components/conversation/YearInput";
+import MonthDayInput from "@/components/conversation/MonthDayInput";
+import HourInput from "@/components/conversation/HourInput";
+import MinuteInput from "@/components/conversation/MinuteInput";
+import LengthInput from "@/components/conversation/LengthInput";
+import { useKeyboard } from "react-native-toast-message/lib/src/hooks";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface FormValue {
   novel?: string;
@@ -37,6 +46,8 @@ interface FormValue {
 export default function OnlineConversationCreateScreen() {
   const now = new Date();
   const createOnlineConversationMutation = useCreateOnlineConversation();
+  const { isKeyboardVisible } = useKeyboard();
+  const insets = useSafeAreaInsets();
   const onlineConversationForm = useForm<FormValue>({
     defaultValues: {
       novel: "",
@@ -104,35 +115,43 @@ export default function OnlineConversationCreateScreen() {
   return (
     <FormProvider {...onlineConversationForm}>
       <View style={styles.container}>
-        <View style={styles.content}>
-          <NovelInput />
-          <ShortStoryInput />
-          <PoemInput />
-          <PlayInput />
-          <FilmInput />
-          <ByInput />
-          <RuleInput />
-          <CapacityInput />
-          <View style={styles.dateTimeRow}>
-            <View style={styles.yearBox}>
-              <YearInput />
+        <KeyboardAvoidingView
+          contentContainerStyle={styles.awareScrollViewContainer}
+          behavior="height"
+          keyboardVerticalOffset={
+            Platform.OS === "ios" || isKeyboardVisible ? 100 : insets.bottom
+          }
+        >
+          <ScrollView style={{ marginBottom: 100 }}>
+            <View style={styles.content}>
+              <NovelInput />
+              <ShortStoryInput />
+              <PoemInput />
+              <PlayInput />
+              <FilmInput />
+              <ByInput />
+              <RuleInput />
+              <CapacityInput />
+              <Text style={styles.whenLabel}>When</Text>
+              <View style={styles.dateTimeRow}>
+                <YearInput />
+              </View>
+              <View style={styles.dateTimeRow}>
+                <MonthDayInput />
+              </View>
+              <View style={styles.dateTimeRow}>
+                <HourInput />
+                <Text>:</Text>
+                <MinuteInput />
+              </View>
+              <LengthInput />
             </View>
-            <View style={styles.monthDayBox}>
-              <MonthDayInput />
-            </View>
-            <View style={styles.timeBox}>
-              <HourInput />
-            </View>
-            <View style={styles.timeBox}>
-              <MinuteInput />
-            </View>
-          </View>
-          <LengthInput />
-        </View>
-        <FixedBottomCTA
-          label="Create"
-          onPress={onlineConversationForm.handleSubmit(onSubmit)}
-        />
+          </ScrollView>
+          <FixedBottomCTA
+            label="Create"
+            onPress={onlineConversationForm.handleSubmit(onSubmit)}
+          />
+        </KeyboardAvoidingView>
       </View>
     </FormProvider>
   );
@@ -152,17 +171,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.SAND_110,
   },
   dateTimeRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-  },
-  yearBox: {
-    flex: 1.2,
-  },
-  monthDayBox: {
-    flex: 2,
-  },
-  timeBox: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  awareScrollViewContainer: {
+    flex: 1,
+  },
+  whenLabel: {
+    fontSize: 12,
+    color: colors.GRAY_700,
+    marginBottom: -10,
   },
 });

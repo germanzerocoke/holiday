@@ -3,7 +3,7 @@ import { Platform, StyleSheet, Text, View } from "react-native";
 import CustomButton from "@/components/CustomButton";
 import { Link, router, useFocusEffect } from "expo-router";
 import { colors } from "@/constants";
-import AppleSignInButton from "@/components/AppleSignInButton";
+import AppleSignInButton from "@/components/auth/AppleSignInButton";
 import { deleteSecureStore } from "@/util/secureStore";
 
 export default function AuthScreen() {
