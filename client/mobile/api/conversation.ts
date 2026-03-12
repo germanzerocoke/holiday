@@ -1,17 +1,17 @@
 import { axiosInstance } from "@/api/axios";
 import {
+  ConversationFeedResponse,
   CreateOnlineConversationRequest,
-  OnlineConversation,
   OnlineConversationDetail,
 } from "@/types/conversation";
-import { data } from "browserslist";
 
 export async function getOnlineConversations(
-  page = 0,
-): Promise<OnlineConversation[]> {
+  page = 1,
+): Promise<ConversationFeedResponse[]> {
   const { data } = await axiosInstance.get(
     `/online/conversation/list?page=${page}`,
   );
+  console.log(data);
   return data;
 }
 

@@ -29,7 +29,7 @@ type ConversationFeedResponse struct {
 	Rule         string    `json:"rule,omitempty"`
 	When         time.Time `json:"when"`
 	Length       string    `json:"length"`
-	OnAir        bool      `json:"onAir"`
+	Ongoing      bool      `json:"ongoing"`
 	IsModerator  bool      `json:"isModerator"`
 	IsRegistrant bool      `json:"isRegistrant"`
 }

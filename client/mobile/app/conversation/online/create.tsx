@@ -24,8 +24,8 @@ import MonthDayInput from "@/components/conversation/MonthDayInput";
 import HourInput from "@/components/conversation/HourInput";
 import MinuteInput from "@/components/conversation/MinuteInput";
 import LengthInput from "@/components/conversation/LengthInput";
-import { useKeyboard } from "react-native-toast-message/lib/src/hooks";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import useKeyboard from "@/hooks/useKeyboard";
 
 interface FormValue {
   novel?: string;
@@ -133,13 +133,9 @@ export default function OnlineConversationCreateScreen() {
               <RuleInput />
               <CapacityInput />
               <Text style={styles.whenLabel}>When</Text>
-              <View style={styles.dateTimeRow}>
-                <YearInput />
-              </View>
-              <View style={styles.dateTimeRow}>
-                <MonthDayInput />
-              </View>
-              <View style={styles.dateTimeRow}>
+              <YearInput />
+              <MonthDayInput />
+              <View style={styles.timeRow}>
                 <HourInput />
                 <Text>:</Text>
                 <MinuteInput />
@@ -170,7 +166,7 @@ const styles = StyleSheet.create({
     gap: 16,
     backgroundColor: colors.SAND_110,
   },
-  dateTimeRow: {
+  timeRow: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",

@@ -45,6 +45,7 @@ func (s *Service) CreateConversation(
 	if err != nil {
 		return nil, err
 	}
+	slog.Info("success to create conversation")
 	return map[string]string{"conversationId": conversationId.Hex()}, nil
 }
 
@@ -66,9 +67,9 @@ func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page
 				isRegistrant = true
 			}
 		}
-		var onAir bool
+		var ongoing bool
 		if time.Now().After(item.When.Add(-10 * time.Minute)) {
-			onAir = true
+			ongoing = true
 		}
 
 		resp = append(resp, dto.ConversationFeedResponse{
@@ -82,11 +83,15 @@ func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page
 			Rule:         item.Rule,
 			When:         item.When,
 			Length:       item.Length.String(),
-			OnAir:        onAir,
+			Ongoing:      ongoing,
 			IsModerator:  isModerator,
 			IsRegistrant: isRegistrant,
 		})
 	}
+	if len(resp) == 0 {
+		resp = []dto.ConversationFeedResponse{}
+	}
+	slog.Info("success to get conversation")
 	return resp, nil
 }
 

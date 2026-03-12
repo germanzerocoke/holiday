@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-export default function DetailLayout() {
+export default function RoomLayout() {
   return (
     <Stack>
       <Stack.Screen
@@ -10,13 +10,6 @@ export default function DetailLayout() {
           headerShown: true,
         }}
       />
-      {/*<Stack.Screen*/}
-      {/*  name="edit"*/}
-      {/*  options={{*/}
-      {/*    title: "Edit your online club",*/}
-      {/*    headerShown: true,*/}
-      {/*  }}*/}
-      {/*/>*/}
     </Stack>
   );
 }

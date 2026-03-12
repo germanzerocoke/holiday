@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "@/constants";
 import { router } from "expo-router";
-import { OnlineConversation } from "@/types/conversation";
+import { ConversationFeedResponse } from "@/types/conversation";
 
 interface OnlineConversationItemProps {
-  conversation: OnlineConversation;
+  conversation: ConversationFeedResponse;
 }
 
 export default function OnlineConversationItem({
@@ -16,7 +16,7 @@ export default function OnlineConversationItem({
       onPress={() => router.push(`/conversation/online/${conversation.id}`)}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>{conversation.title}</Text>
+        <Text style={styles.title}>{conversation.when}</Text>
         <Text style={styles.description}>description</Text>
       </View>
     </Pressable>

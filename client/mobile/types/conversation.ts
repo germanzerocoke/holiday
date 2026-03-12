@@ -11,9 +11,20 @@ export interface CreateOnlineConversationRequest {
   length: string;
 }
 
-export interface OnlineConversation {
+export interface ConversationFeedResponse {
   id: string;
-  title: string;
+  novel?: string;
+  shortStory?: string;
+  poem?: string;
+  drama?: string;
+  film?: string;
+  by?: string;
+  rule?: string;
+  when: string;
+  length: string;
+  ongoing: boolean;
+  isModerator: boolean;
+  isRegistrant: boolean;
 }
 
 export interface OnlineConversationDetail {

@@ -125,6 +125,9 @@ func (c *Controller) getConversations(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	if page < 1 {
+		page = 1
+	}
 	result, err := c.service.GetConversations(r.Context(), memberId, page)
 	if err != nil {
 		w.WriteHeader(getStatusCode(err))
