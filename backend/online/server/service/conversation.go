@@ -49,7 +49,9 @@ func (s *Service) CreateConversation(
 	return map[string]string{"conversationId": conversationId.Hex()}, nil
 }
 
-func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page int) (resp []dto.ConversationFeedResponse, err error) {
+func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page int) ([]dto.ConversationFeedResponse, error) {
+	resp := []dto.ConversationFeedResponse{}
+
 	items, err := s.repository.GetNextConversations(ctx, page)
 	if err != nil {
 		return nil, err
@@ -87,9 +89,6 @@ func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page
 			IsModerator:  isModerator,
 			IsRegistrant: isRegistrant,
 		})
-	}
-	if len(resp) == 0 {
-		resp = []dto.ConversationFeedResponse{}
 	}
 	slog.Info("success to get conversation")
 	return resp, nil
