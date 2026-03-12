@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "@/constants";
 import { router } from "expo-router";
 import { ConversationFeedResponse } from "@/types/conversation";
+import { useAuth } from "@/hooks/useAuth";
 
 interface OnlineConversationItemProps {
   conversation: ConversationFeedResponse;
@@ -10,14 +11,62 @@ interface OnlineConversationItemProps {
 export default function OnlineConversationItem({
   conversation,
 }: OnlineConversationItemProps) {
+  const { id } = useAuth();
+
   return (
     <Pressable
       style={styles.container}
       onPress={() => router.push(`/conversation/online/${conversation.id}`)}
     >
-      <View style={styles.content}>
-        <Text style={styles.title}>{conversation.when}</Text>
-        <Text style={styles.description}>description</Text>
+      <View
+        style={[
+          styles.content,
+          conversation.isRegistrant && styles.registrant,
+          conversation.isModerator && styles.moderator,
+        ]}
+      >
+        <Text style={styles.detail}>
+          {conversation.ongoing && "🔴 ongoing"}
+        </Text>
+        <Text style={styles.when}>
+          {new Intl.DateTimeFormat("en-US", {
+            weekday: "short",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h12",
+          })
+            .format(new Date(conversation.when))
+            .replace(/\sat\s/, " ")}
+          {` For ${conversation.length.replace("0s", "")}`}
+        </Text>
+        {conversation.novel && (
+          <Text style={styles.detail}>Novel: {conversation.novel}</Text>
+        )}
+        {conversation.shortStory && (
+          <Text style={styles.detail}>
+            Short story: {conversation.shortStory}
+          </Text>
+        )}
+        {conversation.poem && (
+          <Text style={styles.detail}>Poem: {conversation.poem}</Text>
+        )}
+        {conversation.drama && (
+          <Text style={styles.detail}>Drama: {conversation.drama}</Text>
+        )}
+        {conversation.film && (
+          <Text style={styles.detail}>Film: {conversation.film}</Text>
+        )}
+        {conversation.rule ? (
+          <View>
+            <Text style={styles.ruleHeader}>Rule</Text>{" "}
+            <Text style={styles.detail}>{conversation.rule}</Text>
+          </View>
+        ) : (
+          <Text style={styles.ruleHeader}>No rule</Text>
+        )}
       </View>
     </Pressable>
   );
@@ -28,15 +77,25 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
-  title: {
-    fontSize: 18,
+  when: {
+    fontSize: 19,
     color: colors.BLACK,
-    fontWeight: 600,
-    marginVertical: 8,
+    fontWeight: 500,
+    marginVertical: 6,
   },
-  description: {
-    fontSize: 16,
-    color: colors.BLACK,
-    marginBottom: 14,
+  detail: {
+    fontSize: 17,
+    fontWeight: 300,
+  },
+  ruleHeader: {
+    marginTop: 6,
+    fontSize: 18,
+    fontWeight: 400,
+  },
+  moderator: {
+    backgroundColor: colors.ORANGE_150,
+  },
+  registrant: {
+    backgroundColor: colors.ORANGE_100,
   },
 });

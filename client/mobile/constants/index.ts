@@ -21,6 +21,10 @@ export const colors = {
   SAND_150: "#FFF3CF",
   SAND_200: "#FFECB3",
   SAND_300: "#FFE082",
+  ORANGE_50: "#FFF3E0",
+  ORANGE_100: "#FFE0B2",
+  ORANGE_150: "#FFD8A8",
+  ORANGE_200: "#FFCC80",
 };
 
 export const queryKey = {

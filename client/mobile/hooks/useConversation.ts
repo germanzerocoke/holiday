@@ -38,6 +38,7 @@ export function useCreateOnlineConversation() {
       });
     },
     onError: (error: AxiosError) => {
+      console.log(error?.response?.data);
       Toast.show({
         type: "error",
         text1: String(error?.response?.data),

@@ -4,6 +4,7 @@ import { colors } from "@/constants";
 import { useScrollToTop } from "@react-navigation/native";
 import OnlineConversationItem from "@/components/conversation/OnlineConversationItem";
 import { useGetInfiniteOnlineConversations } from "@/hooks/useConversation";
+
 export default function OnlineConversationList() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     useGetInfiniteOnlineConversations();
