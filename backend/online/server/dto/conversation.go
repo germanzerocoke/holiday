@@ -23,7 +23,7 @@ type ConversationFeedResponse struct {
 	Novel        string    `json:"novel,omitempty"`
 	ShortStory   string    `json:"shortStory,omitempty"`
 	Poem         string    `json:"poem,omitempty"`
-	Drama        string    `json:"drama,omitempty"`
+	Play         string    `json:"play,omitempty"`
 	Film         string    `json:"film,omitempty"`
 	By           string    `json:"by,omitempty"`
 	Rule         string    `json:"rule,omitempty"`
@@ -35,9 +35,8 @@ type ConversationFeedResponse struct {
 }
 
 type ConversationSignalResponse struct {
-	ParticipantIds []string        `json:"participantIds,omitempty"`
-	FromId         string          `json:"fromId,omitempty"`
-	Signal         json.RawMessage `json:"signal,omitempty"`
+	FromIds []string        `json:"fromIds,omitempty"`
+	Signal  json.RawMessage `json:"signal,omitempty"`
 }
 
 type ConversationSignalRequest struct {

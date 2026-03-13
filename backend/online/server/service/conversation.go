@@ -79,7 +79,7 @@ func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page
 			Novel:        item.Novel,
 			ShortStory:   item.ShortStory,
 			Poem:         item.Poem,
-			Drama:        item.Play,
+			Play:         item.Play,
 			Film:         item.Film,
 			By:           item.By,
 			Rule:         item.Rule,

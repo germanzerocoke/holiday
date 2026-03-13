@@ -53,8 +53,8 @@ export default function OnlineConversationItem({
         {conversation.poem && (
           <Text style={styles.detail}>Poem: {conversation.poem}</Text>
         )}
-        {conversation.drama && (
-          <Text style={styles.detail}>Drama: {conversation.drama}</Text>
+        {conversation.play && (
+          <Text style={styles.detail}>Play: {conversation.play}</Text>
         )}
         {conversation.film && (
           <Text style={styles.detail}>Film: {conversation.film}</Text>

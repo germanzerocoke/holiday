@@ -97,7 +97,7 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	resp := dto.ConversationSignalResponse{ParticipantIds: pids}
+	resp := dto.ConversationSignalResponse{FromIds: pids}
 	payload, err := json.Marshal(resp)
 	if err != nil {
 		slog.Error("fail to marshal")
@@ -129,7 +129,7 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, pid := range pids {
 		resp = dto.ConversationSignalResponse{
-			FromId: memberIdRaw,
+			FromIds: []string{memberIdRaw},
 		}
 		payload, err = json.Marshal(resp)
 		if err != nil {
@@ -210,8 +210,8 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		to, ok := c.connections[req.ToId]
 		if ok {
 			resp = dto.ConversationSignalResponse{
-				FromId: memberIdRaw,
-				Signal: req.Signal,
+				FromIds: []string{memberIdRaw},
+				Signal:  req.Signal,
 			}
 			payload, err = json.Marshal(resp)
 			if err != nil {
@@ -249,8 +249,8 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 
 func (c *Controller) RelaySignal(ctx context.Context, fromId, toId string, signal []byte) error {
 	resp := dto.ConversationSignalResponse{
-		FromId: fromId,
-		Signal: signal,
+		FromIds: []string{fromId},
+		Signal:  signal,
 	}
 	payload, err := json.Marshal(resp)
 	if err != nil {
