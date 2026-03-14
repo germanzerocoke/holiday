@@ -16,8 +16,7 @@ import (
 
 func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 	slog.Info("try to make connection")
-
-	memberIdRaw := r.Header.Get("X-User-Id")
+	memberIdRaw := r.Header.Get("Sec-WebSocket-Protocol")
 	memberId, err := uuid.Parse(memberIdRaw)
 	if err != nil {
 		slog.Error("fail to parse member id from raw string",
@@ -49,6 +48,7 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		//OriginPatterns:     []string{"example.com"},
+		Subprotocols:       []string{memberIdRaw},
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
@@ -62,11 +62,12 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		slog.Info("fail to accept connection", err)
 		return
 	}
-	slog.Info("success to make connection")
 	if c.connections == nil {
 		c.connections = make(map[string]*websocket.Conn)
 	}
 	c.connections[memberIdRaw] = conn
+	slog.Info("success to make connection",
+		"number of current connection", len(c.connections))
 
 	ip, _ := getPodIP()
 
@@ -76,6 +77,8 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		delete(c.connections, memberIdRaw)
 		c.service.RemoveServerIP(destroy, memberId)
 		c.service.RemoveParticipant(destroy, conversationId, memberId)
+		slog.Info("success to close connection",
+			"number of current connection", len(c.connections))
 	}()
 
 	init := context.Background()
@@ -90,7 +93,7 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	pids, err := c.service.GetParticipants(init, conversationId)
+	pids, err := c.service.GetParticipants(init, conversationId, memberId)
 	if err != nil {
 		err = conn.Write(init, websocket.MessageText, []byte(err.Error()))
 		if err != nil {
@@ -100,24 +103,26 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	resp := dto.ConversationSignalResponse{FromIds: pids}
-	payload, err := json.Marshal(resp)
-	if err != nil {
-		slog.Error("fail to marshal")
-		err = conn.Write(init, websocket.MessageText, []byte("fail to get participants"))
+	if pids != nil {
+		resp := dto.ConversationSignalResponse{FromIds: pids}
+		payload, err := json.Marshal(resp)
+		if err != nil {
+			slog.Error("fail to marshal")
+			err = conn.Write(init, websocket.MessageText, []byte("fail to get participants"))
+			if err != nil {
+				slog.Error("fail to write payload",
+					"err", err,
+				)
+			}
+			return
+		}
+		err = conn.Write(init, websocket.MessageText, payload)
 		if err != nil {
 			slog.Error("fail to write payload",
 				"err", err,
 			)
+			return
 		}
-		return
-	}
-	err = conn.Write(init, websocket.MessageText, payload)
-	if err != nil {
-		slog.Error("fail to write payload",
-			"err", err,
-		)
-		return
 	}
 
 	err = c.service.AddParticipant(init, conversationId, memberId)
@@ -131,10 +136,10 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, pid := range pids {
-		resp = dto.ConversationSignalResponse{
+		resp := dto.ConversationSignalResponse{
 			FromIds: []string{memberIdRaw},
 		}
-		payload, err = json.Marshal(resp)
+		payload, err := json.Marshal(resp)
 		if err != nil {
 			slog.Error("fail to marshal")
 			err = conn.Write(init, websocket.MessageText, []byte("fail to get participants"))
@@ -171,12 +176,13 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 		msgType, data, err := conn.Read(ctx)
 		if msgType != websocket.MessageText {
-			slog.Error("incorrect message type")
+			slog.Error("incorrect message type",
+				"msgType", msgType,
+				"data", data)
 			err = conn.Write(ctx, websocket.MessageText, []byte("incorrect message type"))
 			if err != nil {
 				slog.Error("fail to write payload",
-					"err", err,
-				)
+					"err", err)
 			}
 			return
 		}
@@ -212,11 +218,11 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 
 		to, ok := c.connections[req.ToId]
 		if ok {
-			resp = dto.ConversationSignalResponse{
+			resp := dto.ConversationSignalResponse{
 				FromIds: []string{memberIdRaw},
 				Signal:  req.Signal,
 			}
-			payload, err = json.Marshal(resp)
+			payload, err := json.Marshal(resp)
 			if err != nil {
 				slog.Error("fail to marshalling conversationSignal",
 					"resp", resp)

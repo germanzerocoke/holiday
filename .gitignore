@@ -154,3 +154,5 @@ holiday2-3d1c4-firebase-adminsdk-fbsvc-1c03b4c361.json
 *firebase-adminsdk-*.json
 *serviceAccount*.json
 
+expo-env.d.ts
+

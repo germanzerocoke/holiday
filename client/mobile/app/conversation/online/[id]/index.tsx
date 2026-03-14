@@ -133,17 +133,20 @@ export default function OnlineConversationRoomScreen() {
       }
       if (data.signal.type === "answer") {
         const offerDescription = new RTCSessionDescription(data.signal);
-        peers.current[fromId].setRemoteDescription(offerDescription);
+        await peers.current[fromId].setRemoteDescription(offerDescription);
         return;
       }
       if (data.signal.type === "candidate") {
         const iceCandidate = new RTCIceCandidate(data.signal.candidate);
-        peers.current[fromId].addIceCandidate(iceCandidate);
+        await peers.current[fromId].addIceCandidate(iceCandidate);
         return;
       }
     };
 
     return () => {
+      peers.current = {};
+      localAudio.current = null;
+      remoteAudio.current = {};
       ws.current?.close();
     };
   }, [conversationId]);

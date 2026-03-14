@@ -29,6 +29,7 @@ func (r *Repository) SaveConversation(ctx context.Context, memberId uuid.UUID, c
 		ModeratorIds: []bson.Binary{
 			{4, memberId[:]},
 		},
+		ParticipantIds: []bson.Binary{},
 	}
 	filter := bson.M{"_id": bson.Binary{Subtype: 4, Data: memberId[:]}}
 	update := bson.M{
@@ -102,12 +103,12 @@ func (r *Repository) GetNextConversations(ctx context.Context, page int) ([]docu
 }
 
 func (r *Repository) GetParticipants(ctx context.Context, conversationId bson.ObjectID) ([]bson.Binary, error) {
-	opts := options.FindOne().SetProjection(bson.M{"p_ids": 1, "id": 0})
+	opts := options.FindOne().SetProjection(bson.M{"p_ids": 1})
 
 	var d document.Conversation
 	err := r.db.Collection("conversation").FindOne(ctx, bson.M{"_id": conversationId}, opts).Decode(&d)
 	if err != nil {
-		slog.Error("fail to find p")
+		slog.Error("fail to find p", "err", err)
 	}
 	return d.ParticipantIds, nil
 }

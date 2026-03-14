@@ -94,7 +94,7 @@ func (s *Service) GetConversations(ctx context.Context, memberId uuid.UUID, page
 	return resp, nil
 }
 
-func (s *Service) GetParticipants(ctx context.Context, conversationId bson.ObjectID) (pids []string, err error) {
+func (s *Service) GetParticipants(ctx context.Context, conversationId bson.ObjectID, myId uuid.UUID) (pids []string, err error) {
 	pidsRaw, err := s.repository.GetParticipants(ctx, conversationId)
 	if err != nil {
 		return nil, err
@@ -106,6 +106,9 @@ func (s *Service) GetParticipants(ctx context.Context, conversationId bson.Objec
 				"err", err,
 				"pidRaw.Data", pidRaw.Data)
 			return nil, err
+		}
+		if myId == pid {
+			continue
 		}
 		pids = append(pids, pid.String())
 	}
