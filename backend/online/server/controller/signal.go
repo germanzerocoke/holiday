@@ -15,6 +15,8 @@ import (
 )
 
 func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
+	slog.Info("try to make connection")
+
 	memberIdRaw := r.Header.Get("X-User-Id")
 	memberId, err := uuid.Parse(memberIdRaw)
 	if err != nil {
@@ -60,6 +62,7 @@ func (c *Controller) joinConversation(w http.ResponseWriter, r *http.Request) {
 		slog.Info("fail to accept connection", err)
 		return
 	}
+	slog.Info("success to make connection")
 	if c.connections == nil {
 		c.connections = make(map[string]*websocket.Conn)
 	}

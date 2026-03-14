@@ -1,13 +1,16 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { colors } from "@/constants";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ConversationSignalResponse } from "@/types/conversation";
 import {
   RTCPeerConnection,
   RTCIceCandidate,
   RTCSessionDescription,
+  mediaDevices,
+  MediaStream,
 } from "react-native-webrtc";
+import { baseUrl } from "@/api/axios";
 
 export default function OnlineConversationRoomScreen() {
   const { conversationId } = useLocalSearchParams();
@@ -17,15 +20,36 @@ export default function OnlineConversationRoomScreen() {
   //   isError,
   // } = useJoinOnlineConversation(String(roomId));
 
+  const [mute, setMute] = useState(true);
   const ws = useRef<WebSocket>(null);
   const peers = useRef<Record<string, RTCPeerConnection>>({});
+  const localAudio = useRef<MediaStream>(null);
+  const remoteAudio = useRef<Record<string, MediaStream>>({});
+
+  const muteAudio = async () => {
+    if (localAudio.current) {
+      const audioTrack = localAudio.current.getAudioTracks()[0];
+      audioTrack.enabled = !audioTrack.enabled;
+      setMute(!mute);
+    }
+  };
 
   useEffect(() => {
+    console.log("try to connect ws");
     ws.current = new WebSocket(
-      `ws://localhost:8080/online/conversation/join?conversationId=${conversationId}`,
+      `ws://${baseUrl.ios}:8080/online/conversation/join?id=${conversationId}`,
     );
 
+    (async () => {
+      localAudio.current = await mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+    })();
+
     ws.current.onmessage = async (event) => {
+      console.log("get message");
+
       const data: ConversationSignalResponse = JSON.parse(event.data);
       if (!data.signal) {
         for (const fromId of data.fromIds) {
@@ -33,9 +57,15 @@ export default function OnlineConversationRoomScreen() {
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
           });
 
+          localAudio.current?.getTracks().forEach((track) => {
+            if (localAudio.current) {
+              peers.current[fromId].addTrack(track, localAudio.current);
+            }
+          });
+
           peers.current[fromId].addEventListener(
             "icecandidate",
-            (event: RTCIceCandidate) => {
+            (event: any) => {
               if (event.candidate) {
                 ws.current?.send(
                   JSON.stringify({
@@ -46,6 +76,15 @@ export default function OnlineConversationRoomScreen() {
               }
             },
           );
+
+          peers.current[fromId].addEventListner("track", (event: any) => {
+            if (!remoteAudio.current[fromId]) {
+              remoteAudio.current[fromId] = new MediaStream();
+            }
+            if (event.track) {
+              remoteAudio.current[fromId].addTrack(event.track);
+            }
+          });
 
           const offer = await peers.current[fromId].createOffer({
             offerToReceiveAudio: true,
@@ -62,31 +101,29 @@ export default function OnlineConversationRoomScreen() {
         }
         return;
       }
-      if (data.signal) {
-        const fromId = data.fromIds[0];
-        if (data.signal.type === "offer") {
-          const offer = new RTCSessionDescription(data.signal);
-          peers.current[fromId].setRemoteDescription(offer);
-          const answer = await peers.current[fromId].createAnswer();
-          peers.current[fromId].setLocalDescription(answer);
-          ws.current?.send(
-            JSON.stringify({
-              toId: fromId,
-              signal: peers.current[fromId].localDescription,
-            }),
-          );
-          return;
-        }
-        if (data.signal.type === "answer") {
-          const offerDescription = new RTCSessionDescription(data.signal);
-          peers.current[fromId].setRemoteDescription(offerDescription);
-          return;
-        }
-        if (data.signal.type === "candidate") {
-          const iceCandidate = new RTCIceCandidate(data.signal.candidate);
-          peers.current[fromId].addIceCandidate(iceCandidate);
-          return;
-        }
+      const fromId = data.fromIds[0];
+      if (data.signal.type === "offer") {
+        const offer = new RTCSessionDescription(data.signal);
+        peers.current[fromId].setRemoteDescription(offer);
+        const answer = await peers.current[fromId].createAnswer();
+        peers.current[fromId].setLocalDescription(answer);
+        ws.current?.send(
+          JSON.stringify({
+            toId: fromId,
+            signal: peers.current[fromId].localDescription,
+          }),
+        );
+        return;
+      }
+      if (data.signal.type === "answer") {
+        const offerDescription = new RTCSessionDescription(data.signal);
+        peers.current[fromId].setRemoteDescription(offerDescription);
+        return;
+      }
+      if (data.signal.type === "candidate") {
+        const iceCandidate = new RTCIceCandidate(data.signal.candidate);
+        peers.current[fromId].addIceCandidate(iceCandidate);
+        return;
       }
     };
 
@@ -100,6 +137,7 @@ export default function OnlineConversationRoomScreen() {
       <View style={styles.content}>
         <Text style={styles.title}></Text>
         <Text style={styles.description}></Text>
+        <Pressable onPress={muteAudio} />
       </View>
     </View>
   );
