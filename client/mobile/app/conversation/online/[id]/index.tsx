@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { colors } from "@/constants";
 import { useEffect, useRef, useState } from "react";
@@ -10,10 +10,12 @@ import {
   mediaDevices,
   MediaStream,
 } from "react-native-webrtc";
-import { baseUrl } from "@/api/axios";
+
+import { baseUrl, localDevId } from "@/api/axios";
+import { getSecureStore } from "@/util/secureStore";
 
 export default function OnlineConversationRoomScreen() {
-  const { conversationId } = useLocalSearchParams();
+  const { id: conversationId } = useLocalSearchParams();
   // const {
   //   data: conversation,
   //   isPending,
@@ -25,6 +27,14 @@ export default function OnlineConversationRoomScreen() {
   const peers = useRef<Record<string, RTCPeerConnection>>({});
   const localAudio = useRef<MediaStream>(null);
   const remoteAudio = useRef<Record<string, MediaStream>>({});
+  // const at = useRef<string>("");
+
+  const getAudio = async () => {
+    localAudio.current = await mediaDevices.getUserMedia({
+      audio: true,
+      video: false,
+    });
+  };
 
   const muteAudio = async () => {
     if (localAudio.current) {
@@ -34,18 +44,24 @@ export default function OnlineConversationRoomScreen() {
     }
   };
 
+  // const getAccessToken = async () => {
+  //   at.current = (await getSecureStore("accessToken")) ?? "";
+  //   return;
+  // };
+
   useEffect(() => {
+    // getAccessToken();
     console.log("try to connect ws");
     ws.current = new WebSocket(
       `ws://${baseUrl.ios}:8080/online/conversation/join?id=${conversationId}`,
+      [`${Platform.OS === "ios" ? localDevId.ios : localDevId.android}`],
     );
 
-    (async () => {
-      localAudio.current = await mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-    })();
+    console.log(
+      `ws://${baseUrl.ios}:8080/online/conversation/join?id=${conversationId}`,
+    );
+
+    getAudio();
 
     ws.current.onmessage = async (event) => {
       console.log("get message");
@@ -77,7 +93,7 @@ export default function OnlineConversationRoomScreen() {
             },
           );
 
-          peers.current[fromId].addEventListner("track", (event: any) => {
+          peers.current[fromId].addEventListener("track", (event: any) => {
             if (!remoteAudio.current[fromId]) {
               remoteAudio.current[fromId] = new MediaStream();
             }
@@ -104,9 +120,9 @@ export default function OnlineConversationRoomScreen() {
       const fromId = data.fromIds[0];
       if (data.signal.type === "offer") {
         const offer = new RTCSessionDescription(data.signal);
-        peers.current[fromId].setRemoteDescription(offer);
+        await peers.current[fromId].setRemoteDescription(offer);
         const answer = await peers.current[fromId].createAnswer();
-        peers.current[fromId].setLocalDescription(answer);
+        await peers.current[fromId].setLocalDescription(answer);
         ws.current?.send(
           JSON.stringify({
             toId: fromId,

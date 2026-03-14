@@ -12,6 +12,7 @@ export default function OnlineConversationItem({
   conversation,
 }: OnlineConversationItemProps) {
   const { id } = useAuth();
+  console.log(conversation.id);
 
   return (
     <Pressable
